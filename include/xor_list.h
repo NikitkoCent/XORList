@@ -3,6 +3,7 @@
 
 #include <initializer_list> // ::std::initializer_list
 #include <memory>           // ::std::allocator, ::std::allocator_traits
+#include <utility>          // ::std::move, ::std::forward
 
 template <typename T, class TAllocator = ::std::allocator<T>>
 class LinkedList
@@ -20,13 +21,13 @@ public:
 
     LinkedList();
 
-    explicit LinkedList(const allocator_type &alloc);
+    explicit LinkedList(const TAllocator &alloc);
 
     LinkedList(::std::initializer_list<T> il, const TAllocator &alloc);
 
-    explicit LinkedList(::std::size_t n, const allocator_type &alloc = TAllocator());
+    explicit LinkedList(size_type n, const TAllocator &alloc = TAllocator());
 
-    LinkedList(::std::size_t n, const_reference val, const allocator_type &alloc = TAllocator());
+    LinkedList(size_type n, const_reference val, const TAllocator &alloc = TAllocator());
 
     LinkedList(const LinkedList &other);
     LinkedList(LinkedList &&other);
@@ -107,6 +108,35 @@ public:
     template <typename Compare>
     void merge(LinkedList &x, Compare comp) noexcept;
     void merge(LinkedList &x) noexcept;
+
+
+private:
+    struct Node
+    {
+        Node *xorPtr;
+        T value;
+
+
+        template<typename... Args>
+        Node(Node *xorPtr, Args&&... args)
+            : xorPtr(xorPtr), value(::std::forward<Args>(args)...)
+        {}
+
+        Node(const Node&) = delete;
+        Node(Node &&) = delete;
+        
+        ~Node() = default;
+
+        Node& operator=(const Node&) = delete;
+        Node& operator=(Node &&) = delete;
+    };
+
+    using NodeAllocatorType = typename ::std::allocator_traits<TAllocator>::rebind_alloc<Node>;
+
+
+    NodeAllocatorType allocator;
+    Node *head = nullptr;
+    Node *tail = nullptr;
 };
 
 
