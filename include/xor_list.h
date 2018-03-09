@@ -2,12 +2,22 @@
 #define XORLIST_XOR_LIST_H
 
 #include <initializer_list> // ::std::initializer_list
-#include <memory>           // ::std::allocator
+#include <memory>           // ::std::allocator, ::std::allocator_traits
 
 template <typename T, class TAllocator = ::std::allocator<T>>
 class LinkedList
 {
 public:
+    using value_type = T;
+    using allocator_type = TAllocator;
+    using size_type = ::std::size_t;
+    using difference_type = ::std::ptrdiff_t;
+    using reference = value_type&;
+    using const_reference = const value_type&;
+    using pointer = typename ::std::allocator_traits<TAllocator>::pointer;
+    using const_pointer = typename ::std::allocator_traits<TAllocator>::const_pointer;
+
+
     LinkedList();
 
     explicit LinkedList(const allocator_type &alloc);
