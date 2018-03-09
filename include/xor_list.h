@@ -131,10 +131,10 @@ private:
         Node& operator=(Node &&) = delete;
     };
 
-    using NodeAllocatorType = typename ::std::allocator_traits<TAllocator>::rebind_alloc<Node>;
+    using NodeAllocator = typename ::std::allocator_traits<TAllocator>::rebind_alloc<Node>;
 
 
-    NodeAllocatorType allocator;
+    NodeAllocator allocator;
     Node *head = nullptr;
     Node *tail = nullptr;
 };
