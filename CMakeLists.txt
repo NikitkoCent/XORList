@@ -1,12 +1,12 @@
-cmake_minimum_required(VERSION 2.8.2)
+cmake_minimum_required(VERSION 3.1)
 project(XORList)
 
 set(CMAKE_CXX_STANDARD 14)
 
 include_directories(include)
 
+
 enable_testing()
-include(CTest)
 
 if (CMAKE_VERSION VERSION_LESS 3.2)
     set(UPDATE_DISCONNECTED_IF_AVAILABLE "")
@@ -32,10 +32,10 @@ add_subdirectory(${googletest_SOURCE_DIR} ${googletest_BINARY_DIR})
 # are automatically added to the gtest and gmock targets.
 # For earlier CMake versions, we have to explicitly add the
 # required directories to the header search path ourselves.
-#if (CMAKE_VERSION VERSION_LESS 2.8.11)
+if (CMAKE_VERSION VERSION_LESS 2.8.11)
     include_directories("${gtest_SOURCE_DIR}/include"
                         "${gmock_SOURCE_DIR}/include")
-#endif()
+endif()
 # ================================ GOOGLETEST END =======================================
 
 add_executable(unittesting tests/empty.cpp)
