@@ -355,15 +355,12 @@ private:
         IteratorBase(const IteratorBase&) noexcept = default;
         IteratorBase(IteratorBase&&) noexcept = default;
 
-        ~IteratorBase() = default;
+        ~IteratorBase() noexcept = default;
 
         IteratorBase& operator=(const IteratorBase&) noexcept = default;
         IteratorBase& operator=(IteratorBase&&) noexcept = default;
 
     private:
-        friend class LinkedList;
-
-
         using IntPtr = Cond<sizeof(NodePtr) == 1,
                             ::std::uint8_t,
                             Cond<sizeof(NodePtr) == 2,
