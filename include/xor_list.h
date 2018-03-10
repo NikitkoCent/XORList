@@ -5,12 +5,65 @@
 #include <memory>           // ::std::allocator, ::std::allocator_traits, ::std::addressof
 #include <utility>          // ::std::move, ::std::forward
 #include <functional>       // ::std::less, ::std::equal_to
-#include <algorithm>        // ::std::for_each
+#include <iterator>         // ::std::bidirectional_iterator_tag
+#include <type_traits>      // ::std::conditional, ::std::is_const
+#include <cstdint>          // ::std::uint*_t
+#include <cstddef>          // ::std::ptrdiff_t
 
 template <typename T, class TAllocator = ::std::allocator<T>>
 class LinkedList
 {
+private:
+    template<typename It, typename V>
+    class IteratorBase;
+
 public:
+    class iterator : public IteratorBase<iterator, T>
+    {
+    public:
+        iterator() noexcept = default;
+        iterator(const iterator&) noexcept = default;
+        iterator(iterator&&) noexcept = default;
+
+        ~iterator() noexcept = default;
+
+        iterator& operator=(const iterator&) noexcept = default;
+        iterator& operator=(iterator&&) noexcept = default;
+
+    private:
+        friend class LinkedList;
+
+
+        iterator(typename IteratorBase<iterator, T>::NodePtr prev,
+                 typename IteratorBase<iterator, T>::NodePtr current) noexcept
+            : IteratorBase<iterator, T>(prev, current)
+        {
+        }
+    };
+
+    class const_iterator : public IteratorBase<iterator, const T>
+    {
+    public:
+        const_iterator() noexcept = default;
+        const_iterator(const const_iterator&) noexcept = default;
+        const_iterator(const_iterator&&) noexcept = default;
+
+        ~const_iterator() noexcept = default;
+
+        const_iterator& operator=(const const_iterator&) noexcept = default;
+        const_iterator& operator=(const_iterator&&) noexcept = default;
+
+    private:
+        friend class LinkedList;
+
+
+        const_iterator(typename IteratorBase<iterator, const T>::NodePtr prev,
+                       typename IteratorBase<iterator, const T>::NodePtr current) noexcept
+                : IteratorBase<iterator, const T>(prev, current)
+        {
+        }
+    };
+
     using value_type = T;
     using allocator_type = TAllocator;
     using size_type = ::std::size_t;
@@ -109,8 +162,15 @@ public:
     const T& front() const noexcept;
 
     // Iterators and such
-    iterator begin() noexcept;
-    iterator end() noexcept;
+    iterator begin() noexcept
+    {
+        return { nullptr, head };
+    }
+
+    iterator end() noexcept
+    {
+        return { tail, nullptr };
+    }
 
     const_iterator begin() const noexcept
     {
@@ -122,8 +182,15 @@ public:
         return cend();
     }
 
-    const_iterator cbegin() const noexcept;
-    const_iterator cend() const noexcept;
+    const_iterator cbegin() const noexcept
+    {
+        return { nullptr, head };
+    }
+
+    const_iterator cend() const noexcept
+    {
+        return { tail, nullptr };
+    }
 
     void sort() noexcept
     {
@@ -196,7 +263,119 @@ private:
         Node& operator=(Node &&) = delete;
     };
 
-    using NodeAllocator = typename ::std::allocator_traits<TAllocator>::rebind_alloc<Node>;
+    using NodeAllocator = typename ::std::allocator_traits<TAllocator>::template rebind_alloc<Node>;
+
+    template<typename It, typename V>
+    class IteratorBase
+    {
+    private:
+        template<bool c, typename TrueType, typename FalseType>
+        using Cond = typename ::std::conditional<c, TrueType, FalseType>::type;
+
+    public:
+        // =========================== Iterator Concept ===============================
+        using difference_type = ::std::ptrdiff_t;
+        using value_type = V;
+        using pointer = value_type*;
+        using reference = value_type&;
+        using iterator_category = ::std::bidirectional_iterator_tag;
+
+
+        reference operator*() const
+        {
+            return current->value;
+        }
+
+        It& operator++()
+        {
+            NodePtr next = static_cast<NodePtr>(static_cast<IntPtr>(prev) ^ static_cast<IntPtr>(current->xorPtr));
+
+            prev = current;
+            current = next;
+
+            return static_cast<It&>(*this);
+        }
+        // ======================== End Iterator Concept ==============================
+
+        // ====================== Input/Forward Iterator Concept ======================
+        bool operator==(const It &right) const noexcept
+        {
+            return (current == right.current);
+        }
+
+        bool operator!=(const It &right) const noexcept
+        {
+            return !(*this == right);
+        }
+
+        pointer operator->() const
+        {
+            return ::std::addressof(current->value);
+        }
+
+        It operator++(int)
+        {
+            It result(static_cast<It&>(*this));
+            (void)++(*this);
+            return result;
+        }
+        // ==================== End Input/Forward Iterator Concept ====================
+
+        // ===================== Bidirectional Iterator Concept =======================
+        It& operator--()
+        {
+            NodePtr newPrev = static_cast<NodePtr>(static_cast<IntPtr>(prev->xorPtr) ^ static_cast<IntPtr>(current));
+
+            current = prev;
+            prev = newPrev;
+
+            return static_cast<It&>(*this);
+        }
+
+        It operator--(int)
+        {
+            It result(static_cast<It&>(*this));
+            (void)--(*this);
+            return result;
+        }
+        // =================== End Bidirectional Iterator Concept =====================
+    protected:
+        using NodePtr = Cond<::std::is_const<value_type>::value,
+                             const LinkedList::Node*, LinkedList::Node*>;
+
+        static_assert((sizeof(NodePtr) == 1) || (sizeof(NodePtr) == 2)
+                      || (sizeof(NodePtr) == 4) || (sizeof(NodePtr) == 8), "Invalid sizeof pointer");
+
+
+        IteratorBase(NodePtr prev = nullptr, NodePtr current = nullptr) noexcept
+                : prev(prev), current(current)
+        {
+        }
+
+        IteratorBase(const IteratorBase&) noexcept = default;
+        IteratorBase(IteratorBase&&) noexcept = default;
+
+        ~IteratorBase() = default;
+
+        IteratorBase& operator=(const IteratorBase&) noexcept = default;
+        IteratorBase& operator=(IteratorBase&&) noexcept = default;
+
+    private:
+        friend class LinkedList;
+
+
+        using IntPtr = Cond<sizeof(NodePtr) == 1,
+                            ::std::uint8_t,
+                            Cond<sizeof(NodePtr) == 2,
+                                 ::std::uint16_t,
+                                 Cond<sizeof(NodePtr) == 4,
+                                      ::std::uint32_t,
+                                      ::std::uint64_t> > >;
+
+
+        NodePtr prev;
+        NodePtr current;
+    };
 
 
     NodeAllocator allocator;
