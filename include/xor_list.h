@@ -17,6 +17,8 @@ private:
     template<typename It, typename V>
     class IteratorBase;
 
+    struct Node;
+
 public:
     class iterator : public IteratorBase<iterator, T>
     {
@@ -34,15 +36,9 @@ public:
         friend class LinkedList<T, TAllocator>;
 
 
-        iterator(typename IteratorBase<iterator, T>::NodePtr prev,
-                 typename IteratorBase<iterator, T>::NodePtr current) noexcept
+        iterator(Node *prev, Node *current) noexcept
             : IteratorBase<iterator, T>(prev, current)
         {
-        }
-
-        operator const_iterator() const noexcept
-        {
-            return { prev, current };
         }
     };
 
@@ -62,15 +58,14 @@ public:
         friend class LinkedList<T, TAllocator>;
 
 
-        const_iterator(typename IteratorBase<iterator, const T>::NodePtr prev,
-                       typename IteratorBase<iterator, const T>::NodePtr current) noexcept
-                : IteratorBase<iterator, const T>(prev, current)
+        const_iterator(Node *prev, Node *current) noexcept
+            : IteratorBase<iterator, const T>(prev, current)
         {
         }
 
         operator iterator() const noexcept
         {
-            return { prev, current };
+            return { this->prev, this->current };
         }
     };
 
@@ -199,7 +194,7 @@ public:
 
     const_iterator cend() const noexcept
     {
-        return { &beforeHead, beforeHead.xorPtr };
+        return { afterTail.xorPtr, &afterTail };
     }
 
     void sort() noexcept
@@ -253,6 +248,9 @@ public:
 
 
 private:
+    template<bool c, typename TrueType, typename FalseType>
+    using Cond = typename ::std::conditional<c, TrueType, FalseType>::type;
+
     struct Node
     {
         Node *xorPtr;
@@ -285,16 +283,26 @@ private:
         ~NodeWithValue() override = default;
     };
 
+    static_assert((sizeof(Node*) == 1) || (sizeof(Node*) == 2)
+                  || (sizeof(Node*) == 4) || (sizeof(Node*) == 8), "Invalid sizeof pointer");
+
+    static_assert(sizeof(NodeWithValue*) >= sizeof(Node*), "Invalid sizeof pointer");
+
+    using IntPtr = Cond<sizeof(Node*) == 1,
+                        ::std::uint8_t,
+                        Cond<sizeof(Node*) == 2,
+                             ::std::uint16_t,
+                             Cond<sizeof(Node*) == 4,
+                                  ::std::uint32_t,
+                                  ::std::uint64_t> > >;
+
 
     using NodeAllocator = typename ::std::allocator_traits<TAllocator>::template rebind_alloc<NodeWithValue>;
+
 
     template<typename It, typename V>
     class IteratorBase
     {
-    private:
-        template<bool c, typename TrueType, typename FalseType>
-        using Cond = typename ::std::conditional<c, TrueType, FalseType>::type;
-
     public:
         // =========================== Iterator Concept ===============================
         using difference_type = ::std::ptrdiff_t;
@@ -306,12 +314,12 @@ private:
 
         reference operator*() const
         {
-            return static_cast<NodeWithValuePtr>(current)->value;
+            return static_cast<NodeWithValue*>(current)->value;
         }
 
         It& operator++()
         {
-            NodePtr next = static_cast<NodePtr>(static_cast<IntPtr>(prev) ^ static_cast<IntPtr>(current->xorPtr));
+            Node *next = xorPointers(prev, current->xorPtr);
 
             prev = current;
             current = next;
@@ -333,7 +341,7 @@ private:
 
         pointer operator->() const
         {
-            return ::std::addressof(static_cast<NodeWithValuePtr>(current)->value);
+            return ::std::addressof(static_cast<NodeWithValue*>(current)->value);
         }
 
         It operator++(int)
@@ -347,7 +355,7 @@ private:
         // ===================== Bidirectional Iterator Concept =======================
         It& operator--()
         {
-            NodePtr newPrev = static_cast<NodePtr>(static_cast<IntPtr>(prev->xorPtr) ^ static_cast<IntPtr>(current));
+            Node *newPrev = xorPointers(prev->xorPtr, current);
 
             current = prev;
             prev = newPrev;
@@ -363,21 +371,12 @@ private:
         }
         // =================== End Bidirectional Iterator Concept =====================
     protected:
-        using NodePtr = LinkedList::Node*;
-        using NodeWithValuePtr = LinkedList::NodeWithValue*;
-
-        static_assert((sizeof(NodePtr) == 1) || (sizeof(NodePtr) == 2)
-                      || (sizeof(NodePtr) == 4) || (sizeof(NodePtr) == 8), "Invalid sizeof pointer");
-
-        static_assert(sizeof(NodeWithValuePtr) >= sizeof(NodePtr), "Invalid sizeof pointer");
+        Node *prev;
+        Node *current;
 
 
-        NodePtr prev;
-        NodePtr current;
-
-
-        IteratorBase(NodePtr prev = nullptr, NodePtr current = nullptr) noexcept
-                : prev(prev), current(current)
+        IteratorBase(Node *prev = nullptr, Node *current = nullptr) noexcept
+            : prev(prev), current(current)
         {
         }
 
@@ -390,13 +389,7 @@ private:
         IteratorBase& operator=(IteratorBase&&) noexcept = default;
 
     private:
-        using IntPtr = Cond<sizeof(NodePtr) == 1,
-                            ::std::uint8_t,
-                            Cond<sizeof(NodePtr) == 2,
-                                 ::std::uint16_t,
-                                 Cond<sizeof(NodePtr) == 4,
-                                      ::std::uint32_t,
-                                      ::std::uint64_t> > >;
+        friend class LinkedList<T, TAllocator>;
     };
 
 
@@ -404,6 +397,43 @@ private:
     Node beforeHead;
     Node afterTail;
     size_type length = 0;
+
+
+
+    static Node* xorPointers(Node *const first, Node *const second) noexcept
+    {
+        return static_cast<Node*>(static_cast<IntPtr>(first) ^ static_cast<IntPtr>(second));
+    }
+
+    template<typename... Args>
+    NodeWithValue* createNode(Args&&... args)
+    {
+        NodeWithValue *const result = ::std::allocator_traits<NodeAllocator>::allocate(allocator, 1);
+
+        try
+        {
+            ::std::allocator_traits<NodeAllocator>::construct(allocator, result, ::std::forward<Args>(args)...);
+        }
+        catch (...)
+        {
+            ::std::allocator_traits<NodeAllocator>::deallocate(allocator, result, 1);
+            throw;
+        }
+
+        return result;
+    }
+
+    template<typename... Args>
+    iterator emplaceBefore(const_iterator position, Args&&... args)
+    {
+        NodeWithValue *const newNode = createNode(::std::forward<Args>(args)...);
+
+        newNode->xorPtr = xorPointers(position.prev, position.current);
+        position.prev->xorPtr = xorPointers(xorPointers(position.prev->xorPtr, position.current), newNode);
+        position.current->xorPtr = xorPointers(xorPointers(position.current->xorPtr, position.prev), newNode);
+
+        return { position.prev, newNode };
+    }
 };
 
 #endif //XORLIST_XOR_LIST_H
