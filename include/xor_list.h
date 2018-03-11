@@ -9,6 +9,7 @@
 #include <type_traits>      // ::std::conditional
 #include <cstdint>          // ::std::uint*_t
 #include <cstddef>          // ::std::ptrdiff_t
+#include <algorithm>        // ::std::for_each
 
 template <typename T, class TAllocator = ::std::allocator<T>>
 class LinkedList
@@ -140,10 +141,16 @@ public:
     }
 
     template <typename... Args>
-    void emplace_back(Args&&... data);
+    void emplace_back(Args&&... args)
+    {
+        (void)emplaceBefore(cend(), createNode(::std::forward<Args>(args)...));
+    }
 
     template <typename... Args>
-    void emplace_front(Args&&... data);
+    void emplace_front(Args&&... args)
+    {
+        (void)emplaceBefore(cbegin(), createNode(::std::forward<Args>(args)...));
+    }
 
     void pop_front();
     void pop_back();
@@ -205,7 +212,10 @@ public:
     template <class Compare>
     void sort(Compare isLess) noexcept;
 
-    iterator insert(const_iterator position, const_reference val);
+    iterator insert(const_iterator position, const_reference val)
+    {
+        return emplaceBefore(position, createNode(val));
+    }
 
     template <class InputIterator>
     iterator insert(const_iterator position, InputIterator first, InputIterator last);
@@ -423,14 +433,13 @@ private:
         return result;
     }
 
-    template<typename... Args>
-    iterator emplaceBefore(const_iterator position, Args&&... args)
+    iterator emplaceBefore(const_iterator position, NodeWithValue *const newNode) noexcept
     {
-        NodeWithValue *const newNode = createNode(::std::forward<Args>(args)...);
-
         newNode->xorPtr = xorPointers(position.prev, position.current);
         position.prev->xorPtr = xorPointers(xorPointers(position.prev->xorPtr, position.current), newNode);
         position.current->xorPtr = xorPointers(xorPointers(position.current->xorPtr, position.prev), newNode);
+
+        ++length;
 
         return { position.prev, newNode };
     }
