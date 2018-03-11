@@ -9,7 +9,7 @@
 #include <type_traits>      // ::std::conditional
 #include <cstdint>          // ::std::uint*_t
 #include <cstddef>          // ::std::ptrdiff_t
-#include <algorithm>        // ::std::for_each
+#include <algorithm>        // ::std::for_each, ::std::swap
 
 template <typename T, class TAllocator = ::std::allocator<T>>
 class LinkedList
@@ -128,7 +128,11 @@ public:
         return *this;
     }
 
-    void swap(LinkedList &other);
+    void swap(LinkedList &other)
+    {
+        ::std::swap(beforeHead, other.beforeHead);
+        ::std::swap(afterTail, other.afterTail);
+    }
 
     void push_back(const_reference data)
     {
@@ -318,13 +322,13 @@ private:
             : xorPtr(xorPtr)
         {}
 
-        Node(const Node&) = delete;
-        Node(Node &&) = delete;
+        Node(const Node&) = default;
+        Node(Node &&) = default;
         
         virtual ~Node() = default;
 
-        Node& operator=(const Node&) = delete;
-        Node& operator=(Node &&) = delete;
+        Node& operator=(const Node&) = default;
+        Node& operator=(Node &&) = default;
     };
 
     struct NodeWithValue : Node
@@ -338,7 +342,13 @@ private:
         {
         }
 
+        NodeWithValue(const NodeWithValue&) = delete;
+        NodeWithValue(NodeWithValue &&) = delete;
+
         ~NodeWithValue() override = default;
+
+        NodeWithValue& operator=(const NodeWithValue&) = delete;
+        NodeWithValue& operator=(NodeWithValue &&) = delete;
     };
 
     static_assert((sizeof(Node*) == 1) || (sizeof(Node*) == 2)
