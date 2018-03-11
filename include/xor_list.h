@@ -31,7 +31,7 @@ public:
         iterator& operator=(iterator&&) noexcept = default;
 
     private:
-        friend class LinkedList;
+        friend class LinkedList<T, TAllocator>;
 
 
         iterator(typename IteratorBase<iterator, T>::NodePtr prev,
@@ -54,7 +54,7 @@ public:
         const_iterator& operator=(const_iterator&&) noexcept = default;
 
     private:
-        friend class LinkedList;
+        friend class LinkedList<T, TAllocator>;
 
 
         const_iterator(typename IteratorBase<iterator, const T>::NodePtr prev,
@@ -395,6 +395,5 @@ private:
     Node afterTail;
     size_type length = 0;
 };
-
 
 #endif //XORLIST_XOR_LIST_H
