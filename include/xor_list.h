@@ -164,12 +164,12 @@ public:
     // Iterators and such
     iterator begin() noexcept
     {
-        return { nullptr, head };
+        return { &beforeHead, beforeHead.xorPtr };
     }
 
     iterator end() noexcept
     {
-        return { tail, nullptr };
+        return { afterTail.xorPtr, &afterTail };
     }
 
     const_iterator begin() const noexcept
@@ -184,12 +184,12 @@ public:
 
     const_iterator cbegin() const noexcept
     {
-        return { nullptr, head };
+        return { &beforeHead, beforeHead.xorPtr };
     }
 
     const_iterator cend() const noexcept
     {
-        return { tail, nullptr };
+        return { &beforeHead, beforeHead.xorPtr };
     }
 
     void sort() noexcept
@@ -245,23 +245,36 @@ public:
 private:
     struct Node
     {
-        Node *xorPtr = nullptr;
-        T value;
+        Node *xorPtr;
 
 
-        template<typename... Args>
-        Node(Args&&... args)
-            : value(::std::forward<Args>(args)...)
+        Node(Node *xorPtr = nullptr)
+            : xorPtr(xorPtr)
         {}
 
         Node(const Node&) = delete;
         Node(Node &&) = delete;
         
-        ~Node() = default;
+        virtual ~Node() = default;
 
         Node& operator=(const Node&) = delete;
         Node& operator=(Node &&) = delete;
     };
+
+    struct NodeWithValue : Node
+    {
+        T value;
+
+
+        template<typename... Args>
+        NodeWithValue(Args&&... args)
+            : Node(), value(::std::forward<Args>(args)...)
+        {
+        }
+
+        ~NodeWithValue() override = default;
+    };
+
 
     using NodeAllocator = typename ::std::allocator_traits<TAllocator>::template rebind_alloc<Node>;
 
@@ -283,7 +296,7 @@ private:
 
         reference operator*() const
         {
-            return current->value;
+            return static_cast<NodeWithValuePtr>(current)->value;
         }
 
         It& operator++()
@@ -310,7 +323,7 @@ private:
 
         pointer operator->() const
         {
-            return ::std::addressof(current->value);
+            return ::std::addressof(static_cast<NodeWithValuePtr>(current)->value);
         }
 
         It operator++(int)
@@ -340,11 +353,13 @@ private:
         }
         // =================== End Bidirectional Iterator Concept =====================
     protected:
-        using NodePtr = Cond<::std::is_const<value_type>::value,
-                             const LinkedList::Node*, LinkedList::Node*>;
+        using NodePtr = LinkedList::Node*;
+        using NodeWithValuePtr = LinkedList::NodeWithValue*;
 
         static_assert((sizeof(NodePtr) == 1) || (sizeof(NodePtr) == 2)
                       || (sizeof(NodePtr) == 4) || (sizeof(NodePtr) == 8), "Invalid sizeof pointer");
+
+        static_assert(sizeof(NodeWithValuePtr) >= sizeof(NodePtr), "Invalid sizeof pointer");
 
 
         IteratorBase(NodePtr prev = nullptr, NodePtr current = nullptr) noexcept
@@ -376,8 +391,8 @@ private:
 
 
     NodeAllocator allocator;
-    Node *head = nullptr;
-    Node *tail = nullptr;
+    Node beforeHead;
+    Node afterTail;
     size_type length = 0;
 };
 
