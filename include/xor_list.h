@@ -5,7 +5,7 @@
 #include <memory>           // ::std::allocator, ::std::allocator_traits, ::std::addressof
 #include <utility>          // ::std::move, ::std::forward
 #include <functional>       // ::std::less, ::std::equal_to
-#include <iterator>         // ::std::bidirectional_iterator_tag
+#include <iterator>         // ::std::bidirectional_iterator_tag, ::std::next
 #include <type_traits>      // ::std::conditional
 #include <cstdint>          // ::std::uint*_t
 #include <cstddef>          // ::std::ptrdiff_t
@@ -21,6 +21,8 @@ private:
     struct Node;
 
 public:
+    class const_iterator;
+
     class iterator : public IteratorBase<iterator, T>
     {
     public:
@@ -33,8 +35,15 @@ public:
         iterator& operator=(const iterator&) noexcept = default;
         iterator& operator=(iterator&&) noexcept = default;
 
+
+        operator const_iterator() const noexcept
+        {
+            return { this->prev, this->current };
+        }
+
     private:
         friend class LinkedList<T, TAllocator>;
+        friend class const_iterator;
 
 
         iterator(Node *prev, Node *current) noexcept
@@ -57,6 +66,7 @@ public:
 
     private:
         friend class LinkedList<T, TAllocator>;
+        friend class iterator;
 
 
         const_iterator(Node *prev, Node *current) noexcept
@@ -64,7 +74,7 @@ public:
         {
         }
 
-        operator iterator() const noexcept
+        explicit operator iterator() const noexcept
         {
             return { this->prev, this->current };
         }
@@ -143,13 +153,13 @@ public:
     template <typename... Args>
     void emplace_back(Args&&... args)
     {
-        (void)emplaceBefore(cend(), createNode(::std::forward<Args>(args)...));
+        emplaceBefore(cend(), createNode(::std::forward<Args>(args)...));
     }
 
     template <typename... Args>
     void emplace_front(Args&&... args)
     {
-        (void)emplaceBefore(cbegin(), createNode(::std::forward<Args>(args)...));
+        emplaceBefore(cbegin(), createNode(::std::forward<Args>(args)...));
     }
 
     void pop_front();
@@ -214,16 +224,54 @@ public:
 
     iterator insert(const_iterator position, const_reference val)
     {
-        return emplaceBefore(position, createNode(val));
+        //emplaceBefore noexcept!
+        emplaceBefore(position, createNode(val));
+        return static_cast<iterator>(--position);
     }
 
+    // strong exception-safe guarantee
     template <class InputIterator>
-    iterator insert(const_iterator position, InputIterator first, InputIterator last);
+    iterator insert(const_iterator position, InputIterator first, InputIterator last)
+    {
+        if (first == last)
+        {
+            return static_cast<iterator>(position);
+        }
+
+        iterator result = insert(position, *first);
+
+        for ( ; ++first != last; )
+        {
+            try
+            {
+                (void)insert(position, *first);
+            }
+            catch(...)
+            {
+                destroySequence(result, position);
+                throw;
+            }
+        }
+
+        return result;
+    }
 
     void reverse() noexcept;
 
-    iterator erase(const_iterator position);
-    iterator erase(const_iterator first, const_iterator last);
+    iterator erase(const_iterator position)
+    {
+        return erase(position, ::std::next(position));
+    }
+
+    iterator erase(const_iterator first, const_iterator last)
+    {
+        if (first != last)
+        {
+            destroySequence(first, last);
+        }
+
+        return static_cast<iterator>(last);
+    }
 
     void resize(size_type n);
     void resize(size_type n, const_reference val);
@@ -433,15 +481,38 @@ private:
         return result;
     }
 
-    iterator emplaceBefore(const_iterator position, NodeWithValue *const newNode) noexcept
+    void emplaceBefore(const const_iterator &position, NodeWithValue *const newNode) noexcept
     {
         newNode->xorPtr = xorPointers(position.prev, position.current);
         position.prev->xorPtr = xorPointers(xorPointers(position.prev->xorPtr, position.current), newNode);
         position.current->xorPtr = xorPointers(xorPointers(position.current->xorPtr, position.prev), newNode);
 
         ++length;
+    }
 
-        return { position.prev, newNode };
+
+    static void cutSequence(const const_iterator &first, const const_iterator &last) noexcept
+    {
+        first.prev->xorPtr = xorPointers(xorPointers(first.prev->xorPtr, first.current), last.current);
+        last.current->xorPtr = xorPointers(xorPointers(last.current->xorPtr, last.prev), first.prev);
+    }
+
+    void destroySequence(const_iterator first, const_iterator last)
+    {
+        cutSequence(first, last);   // noexcept!
+        length -= ::std::distance(first, last);
+
+        for ( ; first != last; )
+        {
+            /*try
+            {*/
+                ::std::allocator_traits<NodeAllocator>::destroy(allocator, (++first).prev);
+            /*}
+            catch (...)
+            {}*/
+
+            ::std::allocator_traits<NodeAllocator>::deallocate(allocator, first.prev, 1);
+        }
     }
 };
 
