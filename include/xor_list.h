@@ -6,7 +6,7 @@
 #include <utility>          // ::std::move, ::std::forward
 #include <functional>       // ::std::less, ::std::equal_to
 #include <iterator>         // ::std::bidirectional_iterator_tag
-#include <type_traits>      // ::std::conditional, ::std::is_const
+#include <type_traits>      // ::std::conditional
 #include <cstdint>          // ::std::uint*_t
 #include <cstddef>          // ::std::ptrdiff_t
 
@@ -39,6 +39,11 @@ public:
             : IteratorBase<iterator, T>(prev, current)
         {
         }
+
+        operator const_iterator() const noexcept
+        {
+            return { prev, current };
+        }
     };
 
     class const_iterator : public IteratorBase<iterator, const T>
@@ -61,6 +66,11 @@ public:
                        typename IteratorBase<iterator, const T>::NodePtr current) noexcept
                 : IteratorBase<iterator, const T>(prev, current)
         {
+        }
+
+        operator iterator() const noexcept
+        {
+            return { prev, current };
         }
     };
 
@@ -276,7 +286,7 @@ private:
     };
 
 
-    using NodeAllocator = typename ::std::allocator_traits<TAllocator>::template rebind_alloc<Node>;
+    using NodeAllocator = typename ::std::allocator_traits<TAllocator>::template rebind_alloc<NodeWithValue>;
 
     template<typename It, typename V>
     class IteratorBase
@@ -362,6 +372,10 @@ private:
         static_assert(sizeof(NodeWithValuePtr) >= sizeof(NodePtr), "Invalid sizeof pointer");
 
 
+        NodePtr prev;
+        NodePtr current;
+
+
         IteratorBase(NodePtr prev = nullptr, NodePtr current = nullptr) noexcept
                 : prev(prev), current(current)
         {
@@ -383,10 +397,6 @@ private:
                                  Cond<sizeof(NodePtr) == 4,
                                       ::std::uint32_t,
                                       ::std::uint64_t> > >;
-
-
-        NodePtr prev;
-        NodePtr current;
     };
 
 
