@@ -178,13 +178,13 @@ public:
     template <typename... Args>
     void emplace_back(Args&&... args)
     {
-        emplaceBefore(cend(), createNode(::std::forward<Args>(args)...));
+        (void)emplaceBefore(cend(), createNode(::std::forward<Args>(args)...));
     }
 
     template <typename... Args>
     void emplace_front(Args&&... args)
     {
-        emplaceBefore(cbegin(), createNode(::std::forward<Args>(args)...));
+        (void)emplaceBefore(cbegin(), createNode(::std::forward<Args>(args)...));
     }
 
     void pop_front()
@@ -209,7 +209,7 @@ public:
 
     void clear()
     {
-        destroySequence(cbegin(), cend(), length);
+        destroySequence(cbegin(), cend(), size());
     }
 
     T& back() noexcept
@@ -271,13 +271,15 @@ public:
     template <class Compare>
     void sort(Compare isLess) noexcept;
 
+    // WARNING! Iterators equal to position will become invalid
+    // strong exception-safe guarantee
     iterator insert(const_iterator position, const_reference val)
     {
         //emplaceBefore noexcept!
-        emplaceBefore(position, createNode(val));
-        return static_cast<iterator>(--position);
+        return emplaceBefore(position, createNode(val));
     }
 
+    // WARNING! Iterators equal to position will become invalid
     // strong exception-safe guarantee
     template <class InputIterator>
     iterator insert(const_iterator position, InputIterator first, InputIterator last)
@@ -287,13 +289,14 @@ public:
             return static_cast<iterator>(position);
         }
 
-        iterator result = insert(position, *first);
+        const iterator result = insert(position, *first);
+        position = result;
 
-        for ( ; ++first != last; )
+        for ( ; ++first != last; ++position)
         {
             try
             {
-                (void)insert(position, *first);
+                position = insert(position, *first);
             }
             catch(...)
             {
@@ -535,14 +538,16 @@ private:
         return result;
     }
 
-    // BUG! Iterator position becomes invalid
-    void emplaceBefore(const const_iterator &position, NodeWithValue *const newNode) noexcept
+    // WARNING! Iterators equal to position will become invalid
+    iterator emplaceBefore(const const_iterator &position, NodeWithValue *const newNode) noexcept
     {
         newNode->xorPtr = xorPointers(position.prev, position.current);
         position.prev->xorPtr = xorPointers(xorPointers(position.prev->xorPtr, position.current), newNode);
         position.current->xorPtr = xorPointers(xorPointers(position.current->xorPtr, position.prev), newNode);
 
         ++length;
+
+        return { position.prev, newNode };
     }
 
 
