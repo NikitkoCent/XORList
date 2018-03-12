@@ -691,6 +691,12 @@ private:
     template<typename... Args>
     void resizeImpl(size_type count, Args&&... args)
     {
+        if (count == 0)
+        {
+            clear();
+            return;
+        }
+
         while (size() > count)
         {
             pop_back();
