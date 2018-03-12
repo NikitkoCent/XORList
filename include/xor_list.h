@@ -374,9 +374,42 @@ public:
         assign(il.begin(), il.end());
     }
 
-    void splice(const_iterator position, LinkedList &x) noexcept;
-    void splice(const_iterator position, LinkedList &x, const_iterator i) noexcept;
-    void splice(const_iterator position, LinkedList &x, const_iterator first, const_iterator last) noexcept;
+    void splice(const_iterator position, LinkedList &x) noexcept
+    {
+        if (this != ::std::addressof(x))
+        {
+            const auto distance = x.size();
+            const auto xBegin = x.cbegin();
+            const auto xEnd = x.cend();
+
+            x.cutSequence(xBegin, xEnd, distance);
+            emplaceBefore(position, xBegin, xEnd, distance);
+        }
+    }
+
+    void splice(const_iterator position, LinkedList &x, const_iterator i) noexcept
+    {
+        if ((this == ::std::addressof(x)) && (position == i))
+        {
+            return;
+        }
+
+        x.cutSequence(i, ::std::next(i), 1);
+        emplaceBefore(position, static_cast<NodeWithValue*>(i.current));
+    }
+
+    void splice(const_iterator position, LinkedList &x, const_iterator first, const_iterator last) noexcept
+    {
+        if (first == last)
+        {
+            return;
+        }
+
+        const size_type distance = (this == ::std::addressof(x)) ? size() : ::std::distance(first, last);
+
+        x.cutSequence(first, last, distance);
+        emplaceBefore(position, first, last, distance);
+    }
 
 
     void unique()
@@ -628,14 +661,9 @@ private:
         return { position.prev, begin.current };
     }
 
-    iterator emplaceBefore(const_iterator position, const_iterator begin, const_iterator end) noexcept
-    {
-        return emplaceBefore(position, begin, end, ::std::distance(begin, end));
-    }
-
 
     template<typename I>
-    void cutSequence(const const_iterator &first, const const_iterator &last, I distance) noexcept
+    void cutSequence(const_iterator first, const_iterator last, I distance) noexcept
     {
         first.prev->xorPtr = xorPointers(xorPointers(first.prev->xorPtr, first.current), last.current);
         last.current->xorPtr = xorPointers(xorPointers(last.current->xorPtr, last.prev), first.prev);
@@ -659,11 +687,6 @@ private:
 
             ::std::allocator_traits<NodeAllocator>::deallocate(allocator, static_cast<NodeWithValue*>(first.prev), 1);
         }
-    }
-
-    void destroySequence(const_iterator first, const_iterator last)
-    {
-        destroySequence(first, last, ::std::distance(first, last));
     }
 
 
