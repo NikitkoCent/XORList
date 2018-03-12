@@ -145,7 +145,7 @@ public:
     {
         if (this != ::std::addressof(right))
         {
-            LinkedList(right).swap(*this);
+            copyAssignmentImpl(right);
         }
         return *this;
     }
@@ -154,7 +154,7 @@ public:
     {
         if (this != ::std::addressof(right))
         {
-            LinkedList(::std::move(right)).swap(*this);
+            moveAssignmentImpl(::std::move(right));
         }
         return *this;
     }
@@ -752,6 +752,55 @@ private:
     swapImpl(LinkedList &other)
     {
         swapWithoutAllocators(other);
+    }
+
+
+    template<typename Alloc = NodeAllocator>
+    typename ::std::enable_if<::std::allocator_traits<Alloc>::propagate_on_container_copy_assignment::value>::type
+    copyAssignmentImpl(const LinkedList &right)
+    {
+        clear();
+        allocator = right.allocator;
+        assign(right.cbegin(), right.cend());
+    }
+
+    template<typename Alloc = NodeAllocator>
+    typename ::std::enable_if<!::std::allocator_traits<Alloc>::propagate_on_container_copy_assignment::value>::type
+    copyAssignmentImpl(const LinkedList &right)
+    {
+        clear();
+        assign(right.cbegin(), right.cend());
+    }
+
+
+    template<typename Alloc = NodeAllocator>
+    typename ::std::enable_if<::std::allocator_traits<Alloc>::propagate_on_container_move_assignment::value>::type
+    moveAssignmentImpl(LinkedList &&right)
+    {
+        clear();
+        allocator = ::std::move(right.allocator);
+        splice(cbegin(), right);
+    }
+
+    template<typename Alloc = NodeAllocator>
+    typename ::std::enable_if<!::std::allocator_traits<Alloc>::propagate_on_container_move_assignment::value>::type
+    moveAssignmentImpl(LinkedList &&right)
+    {
+        clear();
+
+        if (allocator == right.allocator)
+        {
+            splice(cbegin(), right);
+        }
+        else
+        {
+            for (T &moved : right)
+            {
+                emplace_back(::std::move(moved));
+            }
+
+            right.clear();
+        }
     }
 
 
