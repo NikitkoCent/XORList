@@ -96,8 +96,7 @@ public:
 
     explicit LinkedList(const TAllocator &alloc)
         : allocator(alloc), beforeHead(&afterTail), afterTail(&beforeHead)
-    {
-    }
+    {}
 
     LinkedList(::std::initializer_list<T> il, const TAllocator &alloc)
         : LinkedList(alloc)
@@ -335,8 +334,15 @@ public:
         return static_cast<iterator>(last);
     }
 
-    void resize(size_type n);
-    void resize(size_type n, const_reference val);
+    void resize(size_type count)
+    {
+        resizeImpl(count);
+    }
+
+    void resize(size_type n, const_reference val)
+    {
+        resizeImpl(n, val);
+    }
 
     template <typename InputIterator>
     void assign(InputIterator first, InputIterator last);
@@ -679,6 +685,21 @@ private:
     swapImpl(LinkedList &other)
     {
         swapWithoutAllocators(other);
+    }
+
+
+    template<typename... Args>
+    void resizeImpl(size_type count, Args&&... args)
+    {
+        while (size() > count)
+        {
+            pop_back();
+        }
+
+        while (size() < count)
+        {
+            emplace_back(::std::forward<Args>(args)...);
+        }
     }
 };
 
