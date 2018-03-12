@@ -6,7 +6,7 @@
 #include <utility>          // ::std::move, ::std::forward
 #include <functional>       // ::std::less, ::std::equal_to
 #include <iterator>         // ::std::bidirectional_iterator_tag, ::std::next
-#include <type_traits>      // ::std::conditional
+#include <type_traits>      // ::std::conditional, ::std::enable_if_t
 #include <cstdint>          // ::std::uint*_t
 #include <cstddef>          // ::std::ptrdiff_t
 #include <algorithm>        // ::std::for_each, ::std::swap
@@ -160,7 +160,10 @@ public:
         return *this;
     }
 
-    void swap(LinkedList &other);
+    void swap(LinkedList &other)
+    {
+        swapImpl(other);
+    }
 
     void push_back(const_reference data)
     {
@@ -631,6 +634,51 @@ private:
     void destroySequence(const_iterator first, const_iterator last)
     {
         destroySequence(first, last, ::std::distance(first, last));
+    }
+
+
+    void swapWithoutAllocators(LinkedList &other)
+    {
+        const auto thisBegin = cbegin();
+        const auto thisEnd = cend();
+        const auto thisDistance = size();
+
+        const auto otherBegin = other.cbegin();
+        const auto otherEnd = other.cend();
+        const auto otherDistance = other.size();
+
+        if (!empty())
+        {
+            cutSequence(thisBegin, thisEnd, thisDistance);
+
+            if (!other.empty())
+            {
+                other.cutSequence(otherBegin, otherEnd, otherDistance);
+                (void)emplaceBefore(cbegin(), otherBegin, otherEnd, otherDistance);
+            }
+
+            (void)other.emplaceBefore(other.cbegin(), thisBegin, thisEnd, thisDistance);
+        }
+        else if (!other.empty())
+        {
+            other.cutSequence(otherBegin, otherEnd, otherDistance);
+            (void)emplaceBefore(cbegin(), otherBegin, otherEnd, otherDistance);
+        }
+    }
+
+    template<typename Alloc = NodeAllocator>
+    typename ::std::enable_if<::std::allocator_traits<Alloc>::propagate_on_container_swap::value>::type
+    swapImpl(LinkedList &other)
+    {
+        ::std::swap(allocator, other.allocator);
+        swapWithoutAllocators(other);
+    }
+
+    template<typename Alloc = NodeAllocator>
+    typename ::std::enable_if<!::std::allocator_traits<Alloc>::propagate_on_container_swap::value>::type
+    swapImpl(LinkedList &other)
+    {
+        swapWithoutAllocators(other);
     }
 };
 
