@@ -305,13 +305,7 @@ public:
         return result;
     }
 
-    void reverse() noexcept
-    {
-        if (beforeHead.xorPtr != ::std::addressof(afterTail))
-        {
-            ::std::swap(beforeHead, afterTail);
-        }
-    }
+    void reverse() noexcept;
 
     iterator erase(const_iterator position)
     {
@@ -541,6 +535,7 @@ private:
         return result;
     }
 
+    // BUG! Iterator position becomes invalid
     void emplaceBefore(const const_iterator &position, NodeWithValue *const newNode) noexcept
     {
         newNode->xorPtr = xorPointers(position.prev, position.current);
