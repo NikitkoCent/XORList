@@ -325,6 +325,7 @@ public:
         return erase(position, ::std::next(position));
     }
 
+    // WARNING! Iterators equal to first or !LAST! will become invalid
     iterator erase(const_iterator first, const_iterator last)
     {
         if (first != last)
@@ -332,7 +333,7 @@ public:
             destroySequence(first, last, ::std::distance(first, last));
         }
 
-        return static_cast<iterator>(last);
+        return { first.prev, last.current };
     }
 
     void resize(size_type count)
