@@ -10,7 +10,6 @@
 #include <cstdint>          // ::std::uint*_t
 #include <cstddef>          // ::std::ptrdiff_t
 #include <algorithm>        // ::std::for_each, ::std::swap
-#include <iostream>
 
 template <typename T, class TAllocator = ::std::allocator<T>>
 class LinkedList
@@ -325,7 +324,7 @@ public:
         return erase(position, ::std::next(position));
     }
 
-    // WARNING! Iterators equal to first or !LAST! will become invalid
+    // WARNING! Iterators equal to first OR LAST will become invalid
     iterator erase(const_iterator first, const_iterator last)
     {
         if (first != last)
@@ -428,11 +427,8 @@ public:
         }
 
         auto current = cbegin();
-
         for (auto prev = current++; current != cend(); )
         {
-            std::cout << '\t' << *prev << ' ' << *current << std::endl;
-
             if (isEqual(*prev, *current))
             {
                 current = erase(current);
