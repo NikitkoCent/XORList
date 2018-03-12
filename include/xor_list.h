@@ -10,6 +10,7 @@
 #include <cstdint>          // ::std::uint*_t
 #include <cstddef>          // ::std::ptrdiff_t
 #include <algorithm>        // ::std::for_each, ::std::swap
+#include <iostream>
 
 template <typename T, class TAllocator = ::std::allocator<T>>
 class LinkedList
@@ -328,7 +329,7 @@ public:
     {
         if (first != last)
         {
-            destroySequence(first, last);
+            destroySequence(first, last, ::std::distance(first, last));
         }
 
         return static_cast<iterator>(last);
@@ -418,7 +419,29 @@ public:
     }
 
     template <typename BinaryPredicate>
-    void unique(BinaryPredicate isEqual);
+    void unique(BinaryPredicate isEqual)
+    {
+        if (size() < 2)
+        {
+            return;
+        }
+
+        auto current = cbegin();
+
+        for (auto prev = current++; current != cend(); )
+        {
+            std::cout << '\t' << *prev << ' ' << *current << std::endl;
+
+            if (isEqual(*prev, *current))
+            {
+                current = erase(current);
+            }
+            else
+            {
+                prev = current++;
+            }
+        }
+    }
 
 
     void merge(LinkedList &x) noexcept
