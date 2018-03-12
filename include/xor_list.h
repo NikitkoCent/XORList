@@ -94,16 +94,41 @@ public:
         : LinkedList(TAllocator())
     {}
 
-    explicit LinkedList(const TAllocator &alloc);
+    explicit LinkedList(const TAllocator &alloc)
+        : allocator(alloc), beforeHead(&afterTail), afterTail(&beforeHead)
+    {
+    }
 
-    LinkedList(::std::initializer_list<T> il, const TAllocator &alloc);
+    LinkedList(::std::initializer_list<T> il, const TAllocator &alloc)
+        : LinkedList(alloc)
+    {
+        assign(::std::move(il));
+    }
 
-    explicit LinkedList(size_type n, const TAllocator &alloc = TAllocator());
+    explicit LinkedList(size_type n, const TAllocator &alloc = TAllocator())
+        : LinkedList(alloc)
+    {
+        resize(n);
+    }
 
-    LinkedList(size_type n, const_reference val, const TAllocator &alloc = TAllocator());
+    LinkedList(size_type n, const_reference val, const TAllocator &alloc = TAllocator())
+        : LinkedList(alloc)
+    {
+        resize(n, val);
+    }
 
-    LinkedList(const LinkedList &other);
-    LinkedList(LinkedList &&other);
+    LinkedList(const LinkedList &other)
+        : LinkedList(other.allocator)
+    {
+        insert(cbegin(), other.cbegin(), other.cend());
+    }
+
+    LinkedList(LinkedList &&other)
+        : allocator(::std::move(other.allocator))
+    {
+        swap(other);
+        allocator = ::std::move(other.allocator);
+    }
 
     virtual ~LinkedList()
     {
@@ -128,11 +153,7 @@ public:
         return *this;
     }
 
-    void swap(LinkedList &other)
-    {
-        ::std::swap(beforeHead, other.beforeHead);
-        ::std::swap(afterTail, other.afterTail);
-    }
+    void swap(LinkedList &other);
 
     void push_back(const_reference data)
     {
@@ -166,8 +187,15 @@ public:
         emplaceBefore(cbegin(), createNode(::std::forward<Args>(args)...));
     }
 
-    void pop_front();
-    void pop_back();
+    void pop_front()
+    {
+        (void)erase(cbegin());
+    }
+
+    void pop_back()
+    {
+        (void)erase(--cend());
+    }
 
     size_type size() const noexcept
     {
@@ -179,13 +207,30 @@ public:
         return (size() == 0);
     }
 
-    void clear();
+    void clear()
+    {
+        destroySequence(cbegin(), cend(), length);
+    }
 
-    T& back() noexcept;
-    const T& back() const noexcept;
+    T& back() noexcept
+    {
+        return *(--end());
+    }
 
-    T& front() noexcept;
-    const T& front() const noexcept;
+    const T& back() const noexcept
+    {
+        return *(--cend());
+    }
+
+    T& front() noexcept
+    {
+        return *begin();
+    }
+
+    const T& front() const noexcept
+    {
+        return *cbegin();
+    }
 
     // Iterators and such
     iterator begin() noexcept
@@ -260,7 +305,13 @@ public:
         return result;
     }
 
-    void reverse() noexcept;
+    void reverse() noexcept
+    {
+        if (beforeHead.xorPtr != ::std::addressof(afterTail))
+        {
+            ::std::swap(beforeHead, afterTail);
+        }
+    }
 
     iterator erase(const_iterator position)
     {
@@ -277,7 +328,7 @@ public:
         return static_cast<iterator>(last);
     }
 
-    void resize(size_type n);
+    void resize(size_type n)
     void resize(size_type n, const_reference val);
 
     template <typename InputIterator>
@@ -318,17 +369,17 @@ private:
         Node *xorPtr;
 
 
-        Node(Node *xorPtr = nullptr)
+        explicit Node(Node *xorPtr = nullptr)
             : xorPtr(xorPtr)
         {}
 
-        Node(const Node&) = default;
-        Node(Node &&) = default;
+        Node(const Node&) noexcept = default;
+        Node(Node &&) noexcept = default;
         
         virtual ~Node() = default;
 
-        Node& operator=(const Node&) = default;
-        Node& operator=(Node &&) = default;
+        Node& operator=(const Node&) noexcept = default;
+        Node& operator=(Node &&) noexcept = default;
     };
 
     struct NodeWithValue : Node
@@ -467,7 +518,6 @@ private:
     size_type length = 0;
 
 
-
     static Node* xorPointers(Node *const first, Node *const second) noexcept
     {
         return static_cast<Node*>(static_cast<IntPtr>(first) ^ static_cast<IntPtr>(second));
@@ -507,10 +557,11 @@ private:
         last.current->xorPtr = xorPointers(xorPointers(last.current->xorPtr, last.prev), first.prev);
     }
 
-    void destroySequence(const_iterator first, const_iterator last)
+    void destroySequence(const_iterator first, const_iterator last,
+                         decltype(::std::distance(first, last)) distance = ::std::distance(first, last))
     {
         cutSequence(first, last);   // noexcept!
-        length -= ::std::distance(first, last);
+        length -= distance;
 
         for ( ; first != last; )
         {
