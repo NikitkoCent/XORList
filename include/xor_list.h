@@ -124,10 +124,17 @@ public:
     }
 
     LinkedList(LinkedList &&other)
-        : allocator(::std::move(other.allocator))
+        : allocator(::std::move(other.allocator)), beforeHead(&afterTail), afterTail(&beforeHead)
     {
-        swap(other);
-        allocator = ::std::move(other.allocator);
+        if (!other.empty())
+        {
+            const auto otherBegin = other.cbegin();
+            const auto otherEnd = other.cend();
+            const auto distance = other.size();
+
+            other.cutSequence(otherBegin, otherEnd, distance);
+            (void)emplaceBefore(cbegin(), otherBegin, otherEnd, distance);
+        }
     }
 
     virtual ~LinkedList()
@@ -510,17 +517,6 @@ private:
 
     private:
         friend class LinkedList<T, TAllocator>;
-
-
-        It& setPrev(const IteratorBase &prev) noexcept
-        {
-            return static_cast<It&>(*this);
-        }
-
-        It& setNext(const IteratorBase &next) noexcept
-        {
-            return static_cast<It&>(*this);
-        }
     };
 
 
@@ -570,8 +566,9 @@ private:
         return result;
     }
 
+
     // WARNING! Iterators equal to position will become invalid
-    iterator emplaceBefore(const const_iterator &position, NodeWithValue *const newNode) noexcept
+    iterator emplaceBefore(const_iterator position, NodeWithValue *const newNode) noexcept
     {
         newNode->xorPtr = xorPointers(position.prev, position.current);
         position.prev->xorPtr = xorPointers(xorPointers(position.prev->xorPtr, position.current), newNode);
@@ -580,6 +577,27 @@ private:
         ++length;
 
         return { position.prev, newNode };
+    }
+
+    // WARNING! Iterators equal to position will become invalid
+    template<typename I>
+    iterator emplaceBefore(const_iterator position, const_iterator begin,
+                           const_iterator end, I distance) noexcept
+    {
+        begin.current->xorPtr = xorPointers(xorPointers(begin.current->xorPtr, begin.prev), position.prev);
+        end.prev->xorPtr = xorPointers(xorPointers(end.prev->xorPtr, end.current), position.current);
+
+        position.prev->xorPtr = xorPointers(xorPointers(position.prev->xorPtr, position.current), begin.current);
+        position.current->xorPtr = xorPointers(xorPointers(position.current->xorPtr, position.prev), end.prev);
+
+        length += distance;
+
+        return { position.prev, begin.current };
+    }
+
+    iterator emplaceBefore(const_iterator position, const_iterator begin, const_iterator end) noexcept
+    {
+        return emplaceBefore(position, begin, end, ::std::distance(begin, end));
     }
 
 
