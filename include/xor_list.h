@@ -506,6 +506,18 @@ private:
 
     private:
         friend class LinkedList<T, TAllocator>;
+
+
+        It& setPrev(const IteratorBase &prev) noexcept
+        {
+            #error "Not implemented"
+            return static_cast<It&>(*this);
+        }
+
+        It& setNext(const IteratorBase &next) noexcept
+        {
+            return static_cast<It&>(*this);
+        }
     };
 
 
