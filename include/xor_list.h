@@ -339,16 +339,40 @@ public:
         resizeImpl(count);
     }
 
-    void resize(size_type n, const_reference val)
+    void resize(size_type count, const_reference val)
     {
-        resizeImpl(n, val);
+        resizeImpl(count, val);
     }
 
     template <typename InputIterator>
-    void assign(InputIterator first, InputIterator last);
+    void assign(InputIterator first, InputIterator last)
+    {
+        for (T &element : *this)
+        {
+            if (first == last)
+            {
+                return;
+            }
 
-    void assign(size_type n, const_reference val);
-    void assign(::std::initializer_list<T> il);
+            element = *first;
+            ++first;
+        }
+
+        for ( ; first != last; ++first)
+        {
+            emplace_back(*first);
+        }
+    }
+
+    void assign(size_type count, const_reference val)
+    {
+        resize(count, val);
+    }
+
+    void assign(::std::initializer_list<T> il)
+    {
+        assign(il.begin(), il.end());
+    }
 
     void splice(const_iterator position, LinkedList &x) noexcept;
     void splice(const_iterator position, LinkedList &x, const_iterator i) noexcept;
