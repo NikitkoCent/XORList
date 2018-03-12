@@ -52,7 +52,7 @@ public:
         }
     };
 
-    class const_iterator : public IteratorBase<iterator, const T>
+    class const_iterator : public IteratorBase<const_iterator, const T>
     {
     public:
         const_iterator() noexcept = default;
@@ -70,7 +70,7 @@ public:
 
 
         const_iterator(Node *prev, Node *current) noexcept
-            : IteratorBase<iterator, const T>(prev, current)
+            : IteratorBase<const_iterator, const T>(prev, current)
         {
         }
 
@@ -118,7 +118,7 @@ public:
     }
 
     LinkedList(const LinkedList &other)
-        : LinkedList(other.allocator)
+        : LinkedList(::std::allocator_traits<NodeAllocator>::select_on_container_copy_construction(other.allocator))
     {
         insert(cbegin(), other.cbegin(), other.cend());
     }
@@ -235,12 +235,12 @@ public:
     // Iterators and such
     iterator begin() noexcept
     {
-        return { &beforeHead, beforeHead.xorPtr };
+        return { &beforeHead, reinterpret_cast<Node*>(beforeHead.xorPtr) };
     }
 
     iterator end() noexcept
     {
-        return { afterTail.xorPtr, &afterTail };
+        return { reinterpret_cast<Node*>(afterTail.xorPtr), &afterTail };
     }
 
     const_iterator begin() const noexcept
@@ -255,12 +255,12 @@ public:
 
     const_iterator cbegin() const noexcept
     {
-        return { &beforeHead, beforeHead.xorPtr };
+        return { &beforeHead, reinterpret_cast<Node*>(beforeHead.xorPtr) };
     }
 
     const_iterator cend() const noexcept
     {
-        return { afterTail.xorPtr, &afterTail };
+        return { reinterpret_cast<Node*>(afterTail.xorPtr), &afterTail };
     }
 
     void sort() noexcept
@@ -361,13 +361,30 @@ private:
     template<bool c, typename TrueType, typename FalseType>
     using Cond = typename ::std::conditional<c, TrueType, FalseType>::type;
 
+    struct NodeWithValue;
+
+
+    static_assert((sizeof(Node*) == 1) || (sizeof(Node*) == 2)
+                  || (sizeof(Node*) == 4) || (sizeof(Node*) == 8), "Invalid sizeof pointer");
+
+    static_assert(sizeof(NodeWithValue*) == sizeof(Node*), "Invalid sizeof pointer");
+
+    using PtrInteger = Cond<sizeof(Node*) == 1,
+                            ::std::uint8_t,
+                            Cond<sizeof(Node*) == 2,
+                                 ::std::uint16_t,
+                                 Cond<sizeof(Node*) == 4,
+                                      ::std::uint32_t,
+                                      ::std::uint64_t> > >;
+
+
     struct Node
     {
-        Node *xorPtr;
+        PtrInteger xorPtr;
 
 
         explicit Node(Node *xorPtr = nullptr)
-            : xorPtr(xorPtr)
+            : xorPtr(reinterpret_cast<PtrInteger>(xorPtr))
         {}
 
         Node(const Node&) noexcept = default;
@@ -399,19 +416,6 @@ private:
         NodeWithValue& operator=(NodeWithValue &&) = delete;
     };
 
-    static_assert((sizeof(Node*) == 1) || (sizeof(Node*) == 2)
-                  || (sizeof(Node*) == 4) || (sizeof(Node*) == 8), "Invalid sizeof pointer");
-
-    static_assert(sizeof(NodeWithValue*) >= sizeof(Node*), "Invalid sizeof pointer");
-
-    using IntPtr = Cond<sizeof(Node*) == 1,
-                        ::std::uint8_t,
-                        Cond<sizeof(Node*) == 2,
-                             ::std::uint16_t,
-                             Cond<sizeof(Node*) == 4,
-                                  ::std::uint32_t,
-                                  ::std::uint64_t> > >;
-
 
     using NodeAllocator = typename ::std::allocator_traits<TAllocator>::template rebind_alloc<NodeWithValue>;
 
@@ -435,7 +439,7 @@ private:
 
         It& operator++()
         {
-            Node *next = xorPointers(prev, current->xorPtr);
+            Node *next = reinterpret_cast<Node*>(xorPointers(prev, current->xorPtr));
 
             prev = current;
             current = next;
@@ -471,7 +475,7 @@ private:
         // ===================== Bidirectional Iterator Concept =======================
         It& operator--()
         {
-            Node *newPrev = xorPointers(prev->xorPtr, current);
+            Node *newPrev = reinterpret_cast<Node*>(xorPointers(prev->xorPtr, current));
 
             current = prev;
             prev = newPrev;
@@ -510,7 +514,6 @@ private:
 
         It& setPrev(const IteratorBase &prev) noexcept
         {
-            #error "Not implemented"
             return static_cast<It&>(*this);
         }
 
@@ -522,15 +525,32 @@ private:
 
 
     NodeAllocator allocator;
-    Node beforeHead;
-    Node afterTail;
+    mutable Node beforeHead;
+    mutable Node afterTail;
     size_type length = 0;
 
 
-    static Node* xorPointers(Node *const first, Node *const second) noexcept
+    static PtrInteger xorPointers(Node *const first, Node *const second) noexcept
     {
-        return static_cast<Node*>(static_cast<IntPtr>(first) ^ static_cast<IntPtr>(second));
+        return xorPointers(reinterpret_cast<const PtrInteger>(first),
+                           reinterpret_cast<const PtrInteger>(second));
     }
+
+    static PtrInteger xorPointers(const PtrInteger first, Node *const second) noexcept
+    {
+        return xorPointers(second, first);
+    }
+
+    static PtrInteger xorPointers(Node *const first, const PtrInteger second) noexcept
+    {
+        return xorPointers(reinterpret_cast<const PtrInteger>(first), second);
+    }
+
+    static PtrInteger xorPointers(const PtrInteger first, const PtrInteger second) noexcept
+    {
+        return first ^ second;
+    }
+
 
     template<typename... Args>
     NodeWithValue* createNode(Args&&... args)
@@ -563,29 +583,36 @@ private:
     }
 
 
-    static void cutSequence(const const_iterator &first, const const_iterator &last) noexcept
+    template<typename I>
+    void cutSequence(const const_iterator &first, const const_iterator &last, I distance) noexcept
     {
         first.prev->xorPtr = xorPointers(xorPointers(first.prev->xorPtr, first.current), last.current);
         last.current->xorPtr = xorPointers(xorPointers(last.current->xorPtr, last.prev), first.prev);
+
+        length -= distance;
     }
 
-    void destroySequence(const_iterator first, const_iterator last,
-                         decltype(::std::distance(first, last)) distance = ::std::distance(first, last))
+    template<typename I>
+    void destroySequence(const_iterator first, const_iterator last, I distance)
     {
-        cutSequence(first, last);   // noexcept!
-        length -= distance;
+        cutSequence(first, last, distance);   // noexcept!
 
         for ( ; first != last; )
         {
             /*try
             {*/
-                ::std::allocator_traits<NodeAllocator>::destroy(allocator, (++first).prev);
+                ::std::allocator_traits<NodeAllocator>::destroy(allocator, static_cast<NodeWithValue*>((++first).prev));
             /*}
             catch (...)
             {}*/
 
-            ::std::allocator_traits<NodeAllocator>::deallocate(allocator, first.prev, 1);
+            ::std::allocator_traits<NodeAllocator>::deallocate(allocator, static_cast<NodeWithValue*>(first.prev), 1);
         }
+    }
+
+    void destroySequence(const_iterator first, const_iterator last)
+    {
+        destroySequence(first, last, ::std::distance(first, last));
     }
 };
 
