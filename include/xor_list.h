@@ -328,7 +328,7 @@ public:
         return static_cast<iterator>(last);
     }
 
-    void resize(size_type n)
+    void resize(size_type n);
     void resize(size_type n, const_reference val);
 
     template <typename InputIterator>
