@@ -338,12 +338,13 @@ public:
         afterTail.xorPtr = reinterpret_cast<PtrInteger>(first.current);
     }
 
+    // WARNING! Iterators in the range [position, position + 1] will become invalid
     iterator erase(const_iterator position)
     {
         return erase(position, ::std::next(position));
     }
 
-    // WARNING! Iterators equal to first OR LAST will become invalid
+    // WARNING! Iterators in the range [first, last] will become invalid
     iterator erase(const_iterator first, const_iterator last)
     {
         if (first != last)
@@ -405,6 +406,7 @@ public:
         assign(il.begin(), il.end());
     }
 
+    // WARNING! Iterators equal to position will become invalid
     void splice(const_iterator position, LinkedList &x) noexcept
     {
         if ((this != ::std::addressof(x)) && (!x.empty()))
@@ -418,6 +420,7 @@ public:
         }
     }
 
+    // WARNING! Iterators equal to position will become invalid
     void splice(const_iterator position, LinkedList &x, const_iterator i) noexcept
     {
         if ((this == ::std::addressof(x)) && (position == i))
@@ -429,6 +432,7 @@ public:
         emplaceBefore(position, static_cast<NodeWithValue*>(i.current));
     }
 
+    // WARNING! Iterators equal to position will become invalid
     void splice(const_iterator position, LinkedList &x, const_iterator first, const_iterator last) noexcept
     {
         if (first == last)
