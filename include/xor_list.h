@@ -575,7 +575,11 @@ private:
     };
 
 
+    #ifdef _MSC_VER
+    using NodeAllocator = typename std::allocator_traits<TAllocator>::template rebind_alloc<NodeWithValue>;
+    #else
     using NodeAllocator = typename ::std::allocator_traits<TAllocator>::template rebind_alloc<NodeWithValue>;
+    #endif
 
 
     template<typename It, typename V>
