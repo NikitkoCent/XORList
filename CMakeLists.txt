@@ -44,7 +44,7 @@ if (CMAKE_VERSION VERSION_LESS 2.8.11)
 endif()
 # ================================ GOOGLETEST END =======================================
 
-add_executable(unittesting tests/empty.cpp
+add_executable(unittesting tests/list.cpp
                            include/xor_list.h
                            tests/iterator.cpp)
 target_link_libraries(unittesting gtest gmock_main)

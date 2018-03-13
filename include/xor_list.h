@@ -3,13 +3,15 @@
 
 #include <initializer_list> // ::std::initializer_list
 #include <memory>           // ::std::allocator, ::std::allocator_traits, ::std::addressof
-#include <utility>          // ::std::move, ::std::forward
+#include <utility>          // ::std::move, ::std::forward, ::std::pair
 #include <functional>       // ::std::less, ::std::equal_to
 #include <iterator>         // ::std::bidirectional_iterator_tag, ::std::next, ::std::iterator_traits
 #include <type_traits>      // ::std::conditional, ::std::enable_if_t, ::std::is_base_of
 #include <cstdint>          // ::std::uint*_t
 #include <cstddef>          // ::std::ptrdiff_t
 #include <algorithm>        // ::std::for_each, ::std::swap
+#include <tuple>            // ::std::tie
+
 
 template <typename T, class TAllocator = ::std::allocator<T>>
 class LinkedList
@@ -127,12 +129,7 @@ public:
     {
         if (!other.empty())
         {
-            const auto otherBegin = other.cbegin();
-            const auto otherEnd = other.cend();
-            const auto distance = other.size();
-
-            other.cutSequence(otherBegin, otherEnd, distance);
-            (void)emplaceBefore(cbegin(), otherBegin, otherEnd, distance);
+            splice(cbegin(), other);
         }
     }
 
@@ -187,13 +184,13 @@ public:
     template <typename... Args>
     void emplace_back(Args&&... args)
     {
-        (void)emplaceBefore(cend(), createNode(::std::forward<Args>(args)...));
+        (void)insertNodeToThisBefore(cend(), createNode(::std::forward<Args>(args)...));
     }
 
     template <typename... Args>
     void emplace_front(Args&&... args)
     {
-        (void)emplaceBefore(cbegin(), createNode(::std::forward<Args>(args)...));
+        (void)insertNodeToThisBefore(cbegin(), createNode(::std::forward<Args>(args)...));
     }
 
     void pop_front()
@@ -285,7 +282,7 @@ public:
     iterator insert(const_iterator position, const_reference val)
     {
         //emplaceBefore noexcept!
-        return emplaceBefore(position, createNode(val));
+        return insertNodeToThisBefore(position, createNode(val)).first;
     }
 
     // WARNING! Iterators equal to position will become invalid
@@ -412,11 +409,9 @@ public:
         if ((this != ::std::addressof(x)) && (!x.empty()))
         {
             const auto distance = x.size();
-            const auto xBegin = x.cbegin();
-            const auto xEnd = x.cend();
+            const auto range = x.cutSequenceFromThis(x.cbegin(), x.cend(), distance);
 
-            x.cutSequence(xBegin, xEnd, distance);
-            emplaceBefore(position, xBegin, xEnd, distance);
+            (void)insertSequenceToThisBefore(position, range.first, range.second, distance);
         }
     }
 
@@ -428,8 +423,8 @@ public:
             return;
         }
 
-        x.cutSequence(i, ::std::next(i), 1);
-        emplaceBefore(position, static_cast<NodeWithValue*>(i.current));
+        (void)x.cutSequenceFromThis(i, ::std::next(i), 1);
+        (void)insertNodeToThisBefore(position, static_cast<NodeWithValue*>(i.current));
     }
 
     // WARNING! Iterators equal to position will become invalid
@@ -442,8 +437,8 @@ public:
 
         const size_type distance = (this == ::std::addressof(x)) ? size() : ::std::distance(first, last);
 
-        x.cutSequence(first, last, distance);
-        emplaceBefore(position, first, last, distance);
+        (void)x.cutSequenceFromThis(first, last, distance);
+        (void)insertSequenceToThisBefore(position, first, last, distance);
     }
 
     // All iterators will become invalid
@@ -485,38 +480,10 @@ public:
     template <typename Compare>
     void merge(LinkedList &x, Compare isLess) noexcept
     {
-        if (empty())
-        {
-            splice(cend(), x);
-            return;
-        }
+        const auto distance = x.size();
+        const auto range = x.cutSequenceFromThis(x.cbegin(), x.cend(), distance);
 
-        auto thisIter = cbegin();
-        auto xFirst = x.cbegin();
-
-        while (!x.empty())
-        {
-            if ( (thisIter == cend()) || (isLess(*xFirst, *thisIter)) )
-            {
-                if (thisIter == cbegin())
-                {
-                    splice(thisIter, x, xFirst);
-                    thisIter = cbegin();
-                }
-                else
-                {
-                    --thisIter;
-                    splice(std::next(thisIter), x, xFirst);
-                    ++thisIter;
-                }
-
-                xFirst = x.cbegin();
-            }
-            else
-            {
-                ++thisIter;
-            }
-        }
+        (void)mergeSequencesToThis(cbegin(), cend(), range.first, range.second, ::std::move(isLess), distance);
     }
 
 private:
@@ -726,22 +693,45 @@ private:
     }
 
 
-    // WARNING! Iterators equal to position will become invalid
-    iterator emplaceBefore(const_iterator position, NodeWithValue *const newNode) noexcept
+    ::std::pair<iterator, iterator>
+    insertNodeToThisBefore(const_iterator position, NodeWithValue *const node) noexcept
     {
-        newNode->xorPtr = xorPointers(position.prev, position.current);
-        position.prev->xorPtr = xorPointers(xorPointers(position.prev->xorPtr, position.current), newNode);
-        position.current->xorPtr = xorPointers(xorPointers(position.current->xorPtr, position.prev), newNode);
-
         ++length;
-
-        return { position.prev, newNode };
+        return insertNodeBefore(position, node);
     }
 
-    // WARNING! Iterators equal to position will become invalid
+    /*
+     * All iterators equal to <position> will become invalid
+     * Returns valid range [inserted, position]
+     */
+    static ::std::pair<iterator, iterator>
+    insertNodeBefore(const_iterator position, NodeWithValue *const node) noexcept
+    {
+        node->xorPtr = xorPointers(position.prev, position.current);
+        position.prev->xorPtr = xorPointers(xorPointers(position.prev->xorPtr, position.current), node);
+        position.current->xorPtr = xorPointers(xorPointers(position.current->xorPtr, position.prev), node);
+
+        return { { position.prev, node }, { node, position.current } };
+    }
+
+
     template<typename I>
-    iterator emplaceBefore(const_iterator position, const_iterator begin,
-                           const_iterator end, I distance) noexcept
+    ::std::pair<iterator, iterator>
+    insertSequenceToThisBefore(const_iterator position, const_iterator begin,
+                               const_iterator end, I distance) noexcept
+    {
+        length -= distance;
+        return insertSequenceBefore(position, begin, end);
+    }
+
+    /*
+     * All iterators equal to <position>, <begin> will become invalid
+     * Iterators equal to end still remains valid (--end == result.second)
+     * Returns valid range [begin, position]
+     */
+    static ::std::pair<iterator, iterator>
+    insertSequenceBefore(const_iterator position, const_iterator begin,
+                         const_iterator end) noexcept
     {
         begin.current->xorPtr = xorPointers(xorPointers(begin.current->xorPtr, begin.prev), position.prev);
         end.prev->xorPtr = xorPointers(xorPointers(end.prev->xorPtr, end.current), position.current);
@@ -749,20 +739,32 @@ private:
         position.prev->xorPtr = xorPointers(xorPointers(position.prev->xorPtr, position.current), begin.current);
         position.current->xorPtr = xorPointers(xorPointers(position.current->xorPtr, position.prev), end.prev);
 
-        length += distance;
-
-        return { position.prev, begin.current };
+        return { { position.prev, begin.current }, { end.prev, position.current } };
     }
 
 
     template<typename I>
-    void cutSequence(const_iterator first, const_iterator last, I distance) noexcept
+    ::std::pair<iterator, iterator>
+    cutSequenceFromThis(const_iterator first, const_iterator last, I distance) noexcept
+    {
+        length -= distance;
+        return cutSequence(first, last);
+    }
+
+    /*
+     * Iterators in the range [first, last) STILL REMAINS VALID
+     * Iterators equal to last ARE INVALIDATED
+     * Returns valid iterators [first, last]
+     */
+    static ::std::pair<iterator, iterator>
+    cutSequence(const_iterator first, const_iterator last) noexcept
     {
         first.prev->xorPtr = xorPointers(xorPointers(first.prev->xorPtr, first.current), last.current);
         last.current->xorPtr = xorPointers(xorPointers(last.current->xorPtr, last.prev), first.prev);
 
-        length -= distance;
+        return { static_cast<iterator>(first), { first.prev, last.current } };
     }
+
 
     template<typename I>
     void destroySequence(const_iterator first, const_iterator last, I distance)
@@ -772,7 +774,7 @@ private:
             return;
         }
 
-        cutSequence(first, last, distance);   // noexcept!
+        ::std::tie(first, last) = cutSequenceFromThis(first, last, distance); // noexcept!
 
         for ( ; first != last; )
         {
@@ -900,6 +902,57 @@ private:
         {
             emplace_back(::std::forward<Args>(args)...);
         }
+    }
+
+
+    template<typename LessCompare, typename I>
+    ::std::pair<iterator, iterator>
+    mergeSequencesToThis(const_iterator beginTo, const_iterator endTo,
+                         const_iterator beginFrom, const_iterator endFrom,
+                         LessCompare &&isLess, I distance) noexcept
+    {
+        length += distance;
+        return mergeSequences(beginTo, endTo, beginFrom, endFrom, ::std::forward<LessCompare>(isLess));
+    }
+
+    /*
+     * All iterators will become invalid
+     * Return new range [first, second)
+     */
+    template<typename LessCompare>
+    static ::std::pair<iterator, iterator>
+    mergeSequences(const_iterator beginTo, const_iterator endTo,
+                   const_iterator beginFrom, const_iterator endFrom,
+                   LessCompare &&isLess) noexcept
+    {
+        const_iterator resultBegin = beginTo;
+
+        while (beginFrom != endFrom)
+        {
+            if ((beginTo == endTo) || (isLess(*beginFrom, *beginTo)))
+            {
+                auto newBeginFrom = cutSequence(beginFrom, ::std::next(beginFrom)).second;
+
+                if (resultBegin == beginTo)
+                {
+                    ::std::tie(resultBegin, beginTo) = insertNodeBefore(beginTo,
+                                                                        static_cast<NodeWithValue *>(beginFrom.current));
+                }
+                else
+                {
+                    beginTo = insertNodeBefore(beginTo,
+                                               static_cast<NodeWithValue *>(beginFrom.current)).second;
+                }
+
+                beginFrom = newBeginFrom;
+            }
+            else
+            {
+                ++beginTo;
+            }
+        }
+
+        return { static_cast<iterator>(resultBegin), static_cast<iterator>(beginFrom) };
     }
 };
 
