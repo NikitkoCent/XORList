@@ -317,7 +317,25 @@ public:
         return result;
     }
 
-    void reverse() noexcept;
+    // WARNING! All iterators will become invalid
+    void reverse() noexcept
+    {
+        if (empty())
+        {
+            return;
+        }
+
+        auto first = cbegin();
+        auto last = --cend();
+
+        first.current->xorPtr = xorPointers(xorPointers(first.current->xorPtr, ::std::addressof(beforeHead)),
+                                            ::std::addressof(afterTail));
+        last.current->xorPtr = xorPointers(xorPointers(last.current->xorPtr, ::std::addressof(afterTail)),
+                                           ::std::addressof(beforeHead));
+
+        beforeHead.xorPtr = reinterpret_cast<PtrInteger>(last.current);
+        afterTail.xorPtr = reinterpret_cast<PtrInteger>(first.current);
+    }
 
     iterator erase(const_iterator position)
     {
@@ -346,7 +364,9 @@ public:
     }
 
     template <typename InputIterator>
-    void assign(InputIterator first, InputIterator last)
+    typename ::std::enable_if<::std::is_base_of<::std::input_iterator_tag,
+                                                typename ::std::iterator_traits<InputIterator>::iterator_category>::value>::type
+    assign(InputIterator first, InputIterator last)
     {
         for (T &element : *this)
         {
@@ -367,7 +387,16 @@ public:
 
     void assign(size_type count, const_reference val)
     {
-        resize(count, val);
+        auto iter = begin();
+        for ( ; (iter != end()) && (count > 0); ++iter, --count)
+        {
+           *iter = val;
+        }
+
+        if (iter != end())
+        {
+            erase(iter, end());
+        }
     }
 
     void assign(::std::initializer_list<T> il)
