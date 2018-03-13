@@ -5,8 +5,8 @@
 #include <memory>           // ::std::allocator, ::std::allocator_traits, ::std::addressof
 #include <utility>          // ::std::move, ::std::forward
 #include <functional>       // ::std::less, ::std::equal_to
-#include <iterator>         // ::std::bidirectional_iterator_tag, ::std::next
-#include <type_traits>      // ::std::conditional, ::std::enable_if_t
+#include <iterator>         // ::std::bidirectional_iterator_tag, ::std::next, ::std::iterator_traits
+#include <type_traits>      // ::std::conditional, ::std::enable_if_t, ::std::is_base_of
 #include <cstdint>          // ::std::uint*_t
 #include <cstddef>          // ::std::ptrdiff_t
 #include <algorithm>        // ::std::for_each, ::std::swap
@@ -98,7 +98,7 @@ public:
         : allocator(alloc), beforeHead(&afterTail), afterTail(&beforeHead)
     {}
 
-    LinkedList(::std::initializer_list<T> il, const TAllocator &alloc)
+    LinkedList(::std::initializer_list<T> il, const TAllocator &alloc = TAllocator())
         : LinkedList(alloc)
     {
         assign(::std::move(il));
@@ -300,8 +300,9 @@ public:
 
         const iterator result = insert(position, *first);
         position = result;
+        size_type insertedCount = 1;
 
-        for ( ; ++first != last; ++position)
+        for ( ; ++first != last; ++position, ++insertedCount)
         {
             try
             {
@@ -309,7 +310,7 @@ public:
             }
             catch(...)
             {
-                destroySequence(result, position);
+                destroySequence(result, position, insertedCount);
                 throw;
             }
         }
@@ -406,7 +407,7 @@ public:
 
     void splice(const_iterator position, LinkedList &x) noexcept
     {
-        if (this != ::std::addressof(x))
+        if ((this != ::std::addressof(x)) && (!x.empty()))
         {
             const auto distance = x.size();
             const auto xBegin = x.cbegin();
@@ -441,12 +442,13 @@ public:
         emplaceBefore(position, first, last, distance);
     }
 
-
+    // All iterators will become invalid
     void unique()
     {
         unique(::std::equal_to<T>{});
     }
 
+    // All iterators will become invalid
     template <typename BinaryPredicate>
     void unique(BinaryPredicate isEqual)
     {
@@ -469,15 +471,49 @@ public:
         }
     }
 
-
+    // All iterators from *this and x will become invalid
     void merge(LinkedList &x) noexcept
     {
         merge(x, ::std::less<T>{});
     }
 
+    // All iterators from *this and x will become invalid
     template <typename Compare>
-    void merge(LinkedList &x, Compare comp) noexcept;
+    void merge(LinkedList &x, Compare isLess) noexcept
+    {
+        if (empty())
+        {
+            splice(cend(), x);
+            return;
+        }
 
+        auto thisIter = cbegin();
+        auto xFirst = x.cbegin();
+
+        while (!x.empty())
+        {
+            if ( (thisIter == cend()) || (isLess(*xFirst, *thisIter)) )
+            {
+                if (thisIter == cbegin())
+                {
+                    splice(thisIter, x, xFirst);
+                    thisIter = cbegin();
+                }
+                else
+                {
+                    --thisIter;
+                    splice(std::next(thisIter), x, xFirst);
+                    ++thisIter;
+                }
+
+                xFirst = x.cbegin();
+            }
+            else
+            {
+                ++thisIter;
+            }
+        }
+    }
 
 private:
     template<bool c, typename TrueType, typename FalseType>
@@ -723,6 +759,11 @@ private:
     template<typename I>
     void destroySequence(const_iterator first, const_iterator last, I distance)
     {
+        if (distance == 0)
+        {
+            return;
+        }
+
         cutSequence(first, last, distance);   // noexcept!
 
         for ( ; first != last; )
