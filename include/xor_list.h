@@ -11,6 +11,7 @@
 #include <cstddef>          // ::std::ptrdiff_t
 #include <algorithm>        // ::std::for_each, ::std::swap
 #include <tuple>            // ::std::tie
+#include <array>            // ::std::array
 
 
 template <typename T, class TAllocator = ::std::allocator<T>>
@@ -275,7 +276,55 @@ public:
     }
 
     template <class Compare>
-    void sort(Compare isLess) noexcept;
+    void sort(Compare isLess) noexcept
+    {
+        const auto thisSize = size();
+
+        if (thisSize < 2)
+        {
+            return;
+        }
+
+        using Range = ::std::pair<const_iterator, const_iterator>;
+
+        ::std::array<Range, 3> sortedRanges;
+        ::std::uint32_t currentUnfilled = 0, maxUnfilled = 0;
+
+        while (!empty())
+        {
+            Range newRange = cutSequenceFromThis(cbegin(), ++cbegin(), 1);
+
+            std::cout << *newRange.first << std::endl;
+
+            for (::std::uint32_t i = 0; i < currentUnfilled; ++i)
+            {
+                newRange = mergeSequences(sortedRanges[i].first, sortedRanges[i].second,
+                                          newRange.first, newRange.second,
+                                          isLess);
+            }
+
+            if (currentUnfilled == maxUnfilled)
+            {
+                if (maxUnfilled == sortedRanges.size())
+                {
+                    sortedRanges.back() = newRange;
+                }
+                else
+                {
+                    sortedRanges[maxUnfilled++] = newRange;
+                }
+
+                currentUnfilled = 0;
+            }
+            else
+            {
+                sortedRanges[currentUnfilled++] = newRange;
+            }
+        }
+
+        insertSequenceToThisBefore(cend(), sortedRanges[maxUnfilled - 1].first,sortedRanges[maxUnfilled - 1].second,
+                                   thisSize);
+    }
 
     // WARNING! Iterators equal to position will become invalid
     // strong exception-safe guarantee
@@ -929,7 +978,7 @@ private:
 
         while (beginFrom != endFrom)
         {
-            if ((beginTo == endTo) || (isLess(*beginFrom, *beginTo)))
+            if ((beginTo == endTo) || (::std::forward<LessCompare>(isLess)(*beginFrom, *beginTo)))
             {
                 auto newBeginFrom = cutSequence(beginFrom, ::std::next(beginFrom)).second;
 
