@@ -346,7 +346,7 @@ public:
         position = result;
         size_type insertedCount = 1;
 
-        for ( ; ++first != last; ++position, ++insertedCount)
+        for (++position ; ++first != last; ++position, ++insertedCount)
         {
             try
             {
@@ -456,7 +456,7 @@ public:
         if ((this != ::std::addressof(x)) && (!x.empty()))
         {
             const auto distance = x.size();
-            const auto range = x.cutSequenceFromThis(x.cbegin(), x.cend(), distance);
+            const auto range = x.cutSequenceFromThis(x.cbegin(), x.cend(), distance).cutted;
 
             (void)insertSequenceToThisBefore(position, range.first, range.second, distance);
         }
@@ -527,10 +527,13 @@ public:
     template <typename Compare>
     void merge(LinkedList &x, Compare isLess) noexcept
     {
-        const auto distance = x.size();
-        const auto range = x.cutSequenceFromThis(x.cbegin(), x.cend(), distance);
+        if (!x.empty())
+        {
+            const auto distance = x.size();
+            const auto range = x.cutSequenceFromThis(x.cbegin(), x.cend(), distance).cutted;
 
-        (void)mergeSequencesToThis(cbegin(), cend(), range.first, range.second, ::std::move(isLess), distance);
+            (void)mergeSequencesToThis(cbegin(), cend(), range.first, range.second, ::std::move(isLess), distance);
+        }
     }
 
 private:
@@ -693,6 +696,17 @@ private:
     };
 
 
+    struct CutResult
+    {
+        ::std::pair<iterator, iterator> cutted;
+        iterator end;
+
+        CutResult(iterator first, iterator last, iterator end)
+            : cutted(first, last), end(end)
+        {}
+    };
+
+
     NodeAllocator allocator;
     mutable Node beforeHead;
     mutable Node afterTail;
@@ -767,7 +781,7 @@ private:
     insertSequenceToThisBefore(const_iterator position, const_iterator begin,
                                const_iterator end, I distance) noexcept
     {
-        length -= distance;
+        length += distance;
         return insertSequenceBefore(position, begin, end);
     }
 
@@ -791,7 +805,7 @@ private:
 
 
     template<typename I>
-    ::std::pair<iterator, iterator>
+    CutResult
     cutSequenceFromThis(const_iterator first, const_iterator last, I distance) noexcept
     {
         length -= distance;
@@ -799,40 +813,52 @@ private:
     }
 
     /*
-     * Iterators in the range [first, last) STILL REMAINS VALID
-     * Iterators equal to last ARE INVALIDATED
-     * Returns valid iterators [first, last]
+     * Returns iterators to the first cutted and following the last cutted elements
+     * Decrement result.first or increment result.second is UB
+     * Dereference result.second is UB
+     * Increment and dereference result.first are still valid
+     * Decrement result.second returns is an iterator to the last cutted element
+     * Iterators equal to begin, end will become invalid
      */
-    static ::std::pair<iterator, iterator>
-    cutSequence(const_iterator first, const_iterator last) noexcept
+    static CutResult
+    cutSequence(const_iterator begin, const_iterator end) noexcept
     {
-        first.prev->xorPtr = xorPointers(xorPointers(first.prev->xorPtr, first.current), last.current);
-        last.current->xorPtr = xorPointers(xorPointers(last.current->xorPtr, last.prev), first.prev);
+        if (begin.prev != nullptr)
+        {
+            begin.prev->xorPtr = xorPointers(xorPointers(begin.prev->xorPtr, begin.current), end.current);
+        }
+        if (end.current != nullptr)
+        {
+            end.current->xorPtr = xorPointers(xorPointers(end.current->xorPtr, end.prev), begin.prev);
+        }
 
-        return { static_cast<iterator>(first), { first.prev, last.current } };
+        begin.current->xorPtr = xorPointers(xorPointers(begin.current->xorPtr, begin.prev), nullptr);
+        end.prev->xorPtr = xorPointers(xorPointers(end.prev->xorPtr, end.current), nullptr);
+
+        return { { nullptr, begin.current }, { end.prev, nullptr }, { begin.prev, end.current } };
     }
 
 
     template<typename I>
-    void destroySequence(const_iterator first, const_iterator last, I distance)
+    void destroySequence(const_iterator begin, const_iterator end, I distance)
     {
         if (distance == 0)
         {
             return;
         }
 
-        ::std::tie(first, last) = cutSequenceFromThis(first, last, distance); // noexcept!
+        ::std::tie(begin, end) = cutSequenceFromThis(begin, end, distance).cutted; // noexcept!
 
-        for ( ; first != last; )
+        for (; begin != end; )
         {
             /*try
             {*/
-                ::std::allocator_traits<NodeAllocator>::destroy(allocator, static_cast<NodeWithValue*>((++first).prev));
+                ::std::allocator_traits<NodeAllocator>::destroy(allocator, static_cast<NodeWithValue*>((++begin).prev));
             /*}
             catch (...)
             {}*/
 
-            ::std::allocator_traits<NodeAllocator>::deallocate(allocator, static_cast<NodeWithValue*>(first.prev), 1);
+            ::std::allocator_traits<NodeAllocator>::deallocate(allocator, static_cast<NodeWithValue*>(begin.prev), 1);
         }
     }
 
@@ -978,20 +1004,20 @@ private:
         {
             if ((beginTo == endTo) || (::std::forward<LessCompare>(isLess)(*beginFrom, *beginTo)))
             {
-                auto newBeginFrom = cutSequence(beginFrom, ::std::next(beginFrom)).second;
+                auto cutResult = cutSequence(beginFrom, ::std::next(beginFrom));
 
                 if (resultBegin == beginTo)
                 {
                     ::std::tie(resultBegin, beginTo) = insertNodeBefore(beginTo,
-                                                                        static_cast<NodeWithValue *>(beginFrom.current));
+                                                                        static_cast<NodeWithValue *>(cutResult.cutted.first.current));
                 }
                 else
                 {
                     beginTo = insertNodeBefore(beginTo,
-                                               static_cast<NodeWithValue *>(beginFrom.current)).second;
+                                               static_cast<NodeWithValue *>(cutResult.cutted.first.current)).second;
                 }
 
-                beginFrom = newBeginFrom;
+                beginFrom = cutResult.end;
             }
             else
             {
