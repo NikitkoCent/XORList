@@ -294,8 +294,6 @@ public:
         {
             Range newRange = cutSequenceFromThis(cbegin(), ++cbegin(), 1);
 
-            std::cout << *newRange.first << std::endl;
-
             for (::std::uint32_t i = 0; i < currentUnfilled; ++i)
             {
                 newRange = mergeSequences(sortedRanges[i].first, sortedRanges[i].second,
