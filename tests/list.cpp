@@ -55,6 +55,7 @@ TEST(LIST, CONSTRUCTOR_DEFAULT)
     EXPECT_TRUE(list.empty());
 }
 
+
 TEST(LIST, CONSTRUCTOR_ALLOCATOR)
 {
     LinkedList<NonMovableValue<int>> list(std::allocator<NonMovableValue<int>>{});
@@ -68,6 +69,7 @@ TEST(LIST, CONSTRUCTOR_ALLOCATOR)
     EXPECT_EQ(list.front(), 10);
     EXPECT_EQ(list.back(), 20);
 }
+
 
 TEST(LIST, CONSTRUCTOR_INITIALIZER_LIST)
 {
@@ -95,6 +97,7 @@ TEST(LIST, CONSTRUCTOR_EMPTY_INITIALIZER_LIST)
         FAIL();
     }
 }
+
 
 TEST(LIST, CONSTRUCTOR_DEFAULT_FILL)
 {
@@ -124,6 +127,7 @@ TEST(LIST, CONSTRUCTOR_EMPTY_DEFAULT_FILL)
     }
 }
 
+
 TEST(LIST, CONSTRUCTOR_VALUE_FILL)
 {
     LinkedList<Value<int>> l1(10U, -1590);
@@ -152,6 +156,7 @@ TEST(LIST, CONSTRUCTOR_EMPTY_VALUE_FILL)
     }
 }
 
+
 TEST(LIST, COPY_CONSTRUCTOR_EMPTY)
 {
     LinkedList<Value<int>> l1, l2(l1);
@@ -177,7 +182,7 @@ TEST(LIST, COPY_CONSTRUCTOR_NON_EMPTY)
     EXPECT_EQ(l1.size(), 9U);
     EXPECT_EQ(l2.size(), l1.size());
 
-    int i = 0;
+    int i = 1;
     auto it = l1.cbegin();
     for (int e : l2)
     {
@@ -185,7 +190,7 @@ TEST(LIST, COPY_CONSTRUCTOR_NON_EMPTY)
         ++i;
     }
 
-    EXPECT_EQ(i, 9);
+    EXPECT_EQ(i, 10);
 }
 
 TEST(LIST, MOVE_CONSTRUCTOR_EMPTY)
@@ -223,7 +228,151 @@ TEST(LIST, MOVE_CONSTRUCTOR_NON_EMPTY)
     {
         EXPECT_EQ(e, i++);
     }
-    EXPECT_EQ(i, 9);
+    EXPECT_EQ(i, 10);
+}
+
+
+TEST(LIST, COPY_ASSIGNMENT_SELF)
+{
+    LinkedList<Value<int>> l1{1, 2, 3, 4, 5, 6, 7, 8, 9};
+
+    l1 = l1;
+
+    EXPECT_EQ(l1.size(), 9U);
+
+    int i = 1;
+    for (int e : l1)
+    {
+        EXPECT_EQ(e, i++);
+    }
+    EXPECT_EQ(i, 10);
+}
+
+TEST(LIST, COPY_ASSIGNMENT_EMPTY)
+{
+    LinkedList<Value<int>> l1{1, 2, 3, 4, 5, 6, 7, 8, 9}, l2;
+
+    l1 = l2;
+
+    EXPECT_TRUE(l1.empty());
+    for (int e : l1)
+    {
+        FAIL();
+    }
+}
+
+TEST(LIST, COPY_ASSIGNMENT_NON_EMPTY_LESS)
+{
+    LinkedList<Value<int>> l1{1, 2, 3, 4, 5, 6, 7, 8, 9}, l2{10, 20, 30, 40, 50, 60};
+
+    l1 = l2;
+    l2.clear();
+
+    EXPECT_EQ(l1.size(), 6U);
+
+    int i = 0;
+    for (int e : l1)
+    {
+        EXPECT_EQ(e, i += 10);
+    }
+    EXPECT_EQ(i, 60);
+}
+
+TEST(LIST, COPY_ASSIGNMENT_NON_EMPTY_GREATER)
+{
+    LinkedList<Value<int>> l1{10, 20, 30, 40, 50, 60}, l2{1, 2, 3, 4, 5, 6, 7, 8, 9};
+
+    l1 = l2;
+    l2.clear();
+
+    EXPECT_EQ(l1.size(), 9U);
+
+    int i = 1;
+    for (int e : l1)
+    {
+        EXPECT_EQ(e, i++);
+    }
+    EXPECT_EQ(i, 10);
+}
+
+
+TEST(LIST, MOVE_ASSIGNMENT_SELF)
+{
+    LinkedList<Value<int>> l1{1, 2, 3, 4, 5, 6, 7, 8, 9};
+
+    l1 = std::move(l1);
+
+    EXPECT_EQ(l1.size(), 9U);
+
+    int i = 1;
+    for (int e : l1)
+    {
+        EXPECT_EQ(e, i++);
+    }
+    EXPECT_EQ(i, 10);
+}
+
+TEST(LIST, MOVE_ASSIGNMENT_EMPTY)
+{
+    LinkedList<Value<int>> l1{1, 2, 3, 4, 5, 6, 7, 8, 9}, l2;
+
+    l1 = std::move(l2);
+
+    EXPECT_TRUE(l2.empty());
+    for (int e : l2)
+    {
+        FAIL();
+    }
+
+    EXPECT_TRUE(l1.empty());
+    for (int e : l1)
+    {
+        FAIL();
+    }
+}
+
+TEST(LIST, MOVE_ASSIGNMENT_NON_EMPTY_LESS)
+{
+    LinkedList<Value<int>> l1{1, 2, 3, 4, 5, 6, 7, 8, 9}, l2{10, 20, 30, 40, 50, 60};
+
+    l1 = std::move(l2);
+
+    EXPECT_TRUE(l2.empty());
+    for (int e : l2)
+    {
+        FAIL();
+    }
+
+    EXPECT_EQ(l1.size(), 6U);
+
+    int i = 0;
+    for (int e : l1)
+    {
+        EXPECT_EQ(e, i += 10);
+    }
+    EXPECT_EQ(i, 60);
+}
+
+TEST(LIST, MOVE_ASSIGNMENT_NON_EMPTY_GREATER)
+{
+    LinkedList<Value<int>> l1{10, 20, 30, 40, 50, 60}, l2{1, 2, 3, 4, 5, 6, 7, 8, 9};
+
+    l1 = std::move(l2);
+
+    EXPECT_TRUE(l2.empty());
+    for (int e : l2)
+    {
+        FAIL();
+    }
+
+    EXPECT_EQ(l1.size(), 9U);
+
+    int i = 1;
+    for (int e : l1)
+    {
+        EXPECT_EQ(e, i++);
+    }
+    EXPECT_EQ(i, 10);
 }
 
 
