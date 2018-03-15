@@ -519,3 +519,56 @@ TEST(LIST, SWAP_SINGLE_EMPTY)
     ASSERT_EQ(l2.size(), 1U);
     ASSERT_THAT(l2, ::testing::ElementsAre(-123));
 }
+
+TEST(LIST, SWAP_EMPTY_GENERIC)
+{
+    LinkedList<Value<int>> l1, l2{1, -2, 5, 65, 3, 42, 67, 35, 7, -10};
+
+    l1.swap(l2);
+
+    ASSERT_EQ(l1.size(), 10U);
+    ASSERT_THAT(l1, ::testing::ElementsAre(1, -2, 5, 65, 3, 42, 67, 35, 7, -10));
+
+    ASSERT_TRUE(l2.empty());
+    ASSERT_THAT(l2, ::testing::ElementsAre());
+}
+
+TEST(LIST, SWAP_GENERIC_EMPTY)
+{
+    LinkedList<Value<int>> l1{1, -2, 5, 65, 3, 42, 67, 35, 7, -10}, l2;
+
+    l1.swap(l2);
+
+    ASSERT_TRUE(l1.empty());
+    ASSERT_THAT(l1, ::testing::ElementsAre());
+
+    ASSERT_EQ(l2.size(), 10U);
+    ASSERT_THAT(l2, ::testing::ElementsAre(1, -2, 5, 65, 3, 42, 67, 35, 7, -10));
+}
+
+
+TEST(LIST, SWAP_GENERICS1)
+{
+    LinkedList<Value<int>> l1{1, -2, 5, 65, 3, 42, 67, 35, 7, -10}, l2{298034, 78, 5490, 548};
+
+    l1.swap(l2);
+
+    ASSERT_EQ(l1.size(), 4U);
+    ASSERT_THAT(l1, ::testing::ElementsAre(298034, 78, 5490, 548));
+
+    ASSERT_EQ(l2.size(), 10U);
+    ASSERT_THAT(l2, ::testing::ElementsAre(1, -2, 5, 65, 3, 42, 67, 35, 7, -10));
+}
+
+TEST(LIST, SWAP_GENERICS2)
+{
+    LinkedList<Value<int>> l1{1, -2, 5, 65, 3, 42, 67, 35, 7, -10}, l2{298034, 78, 5490, 548};
+
+    l2.swap(l1);
+
+    ASSERT_EQ(l1.size(), 4U);
+    ASSERT_THAT(l1, ::testing::ElementsAre(298034, 78, 5490, 548));
+
+    ASSERT_EQ(l2.size(), 10U);
+    ASSERT_THAT(l2, ::testing::ElementsAre(1, -2, 5, 65, 3, 42, 67, 35, 7, -10));
+}
