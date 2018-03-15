@@ -46,4 +46,19 @@ endif()
 
 add_executable(unittesting tests/empty.cpp)
 target_link_libraries(unittesting gtest gmock_main)
+
 add_test(NAME do_tests COMMAND unittesting)
+
+# ================================= TEST COVERAGE =======================================
+download_project(PROJ                googletest-coverage
+                 GIT_REPOSITORY      https://github.com/NikitkoCent/cmake-modules
+                 GIT_TAG             changes
+                 ${UPDATE_DISCONNECTED_IF_AVAILABLE}
+                )
+include(${googletest-coverage_SOURCE_DIR}/CodeCoverage.cmake)
+
+APPEND_COVERAGE_COMPILER_FLAGS()
+SETUP_TARGET_FOR_COVERAGE(NAME collect_coverage
+                          EXECUTABLE ctest
+                          DEPENDENCIES unittesting)
+# ===============================  END TEST COVERAGE ====================================
