@@ -278,6 +278,14 @@ public:
     template <class Compare>
     void sort(Compare isLess) noexcept
     {
+        using Range = ::std::pair<const_iterator, const_iterator>;
+        struct NullableRange
+        {
+            Range range;
+            bool isNull = true;
+        };
+
+
         const auto thisSize = size();
 
         if (thisSize < 2)
@@ -285,43 +293,52 @@ public:
             return;
         }
 
-        using Range = ::std::pair<const_iterator, const_iterator>;
-
-        ::std::array<Range, 3> sortedRanges;
-        ::std::uint32_t currentUnfilled = 0, maxUnfilled = 0;
+        ::std::array<NullableRange, 3> sortedRanges;
+        ::std::uint32_t maxUnfilled = 0;
 
         while (!empty())
         {
-            Range newRange = cutSequenceFromThis(cbegin(), ++cbegin(), 1);
-
-            for (::std::uint32_t i = 0; i < currentUnfilled; ++i)
+            Range newRange = cutSequenceFromThis(cbegin(), ++cbegin(), 1).cutted;
+            for (::std::uint32_t i = 0; i < maxUnfilled; ++i)
             {
-                newRange = mergeSequences(sortedRanges[i].first, sortedRanges[i].second,
-                                          newRange.first, newRange.second,
-                                          isLess);
+                if (!sortedRanges[i].isNull)
+                {
+                    newRange = mergeSequences(sortedRanges[i].range.first, sortedRanges[i].range.second,
+                                              newRange.first, newRange.second, isLess);
+                    sortedRanges[i].isNull = true;
+                }
             }
 
-            if (currentUnfilled == maxUnfilled)
+            if (maxUnfilled == sortedRanges.size())
             {
-                if (maxUnfilled == sortedRanges.size())
-                {
-                    sortedRanges.back() = newRange;
-                }
-                else
-                {
-                    sortedRanges[maxUnfilled++] = newRange;
-                }
-
-                currentUnfilled = 0;
+                sortedRanges.back().range = newRange;
+                sortedRanges.back().isNull = false;
             }
             else
             {
-                sortedRanges[currentUnfilled++] = newRange;
+                sortedRanges[maxUnfilled].range = newRange;
+                sortedRanges[maxUnfilled++].isNull = false;
             }
         }
 
-        insertSequenceToThisBefore(cend(), sortedRanges[maxUnfilled - 1].first,sortedRanges[maxUnfilled - 1].second,
-                                   thisSize);
+        NullableRange result;
+        for (::std::uint32_t i = 0; i < maxUnfilled; ++i)
+        {
+            if (!sortedRanges[i].isNull)
+            {
+                if (result.isNull)
+                {
+                    result = sortedRanges[i];
+                }
+                else
+                {
+                    result.range = mergeSequences(sortedRanges[i].range.first, sortedRanges[i].range.second,
+                                                  result.range.first, result.range.second, isLess);
+                }
+            }
+        }
+
+        (void)insertSequenceToThisBefore(cend(), result.range.first, result.range.second, thisSize);
     }
 
     // WARNING! Iterators equal to position will become invalid
@@ -769,8 +786,15 @@ private:
     insertNodeBefore(const_iterator position, NodeWithValue *const node) noexcept
     {
         node->xorPtr = xorPointers(position.prev, position.current);
-        position.prev->xorPtr = xorPointers(xorPointers(position.prev->xorPtr, position.current), node);
-        position.current->xorPtr = xorPointers(xorPointers(position.current->xorPtr, position.prev), node);
+
+        if (position.prev != nullptr)
+        {
+            position.prev->xorPtr = xorPointers(xorPointers(position.prev->xorPtr, position.current), node);
+        }
+        if (position.current != nullptr)
+        {
+            position.current->xorPtr = xorPointers(xorPointers(position.current->xorPtr, position.prev), node);
+        }
 
         return { { position.prev, node }, { node, position.current } };
     }
@@ -797,8 +821,14 @@ private:
         begin.current->xorPtr = xorPointers(xorPointers(begin.current->xorPtr, begin.prev), position.prev);
         end.prev->xorPtr = xorPointers(xorPointers(end.prev->xorPtr, end.current), position.current);
 
-        position.prev->xorPtr = xorPointers(xorPointers(position.prev->xorPtr, position.current), begin.current);
-        position.current->xorPtr = xorPointers(xorPointers(position.current->xorPtr, position.prev), end.prev);
+        if (position.prev != nullptr)
+        {
+            position.prev->xorPtr = xorPointers(xorPointers(position.prev->xorPtr, position.current), begin.current);
+        }
+        if (position.current != nullptr)
+        {
+            position.current->xorPtr = xorPointers(xorPointers(position.current->xorPtr, position.prev), end.prev);
+        }
 
         return { { position.prev, begin.current }, { end.prev, position.current } };
     }
@@ -1002,7 +1032,20 @@ private:
 
         while (beginFrom != endFrom)
         {
-            if ((beginTo == endTo) || (::std::forward<LessCompare>(isLess)(*beginFrom, *beginTo)))
+            if (beginTo == endTo)
+            {
+                if (resultBegin == beginTo)
+                {
+                    ::std::tie(resultBegin, endTo) = insertSequenceBefore(beginTo, beginFrom, endFrom);
+                }
+                else
+                {
+                    endTo = insertSequenceBefore(beginTo, beginFrom, endFrom).second;
+                }
+
+                break;
+            }
+            else if (::std::forward<LessCompare>(isLess)(*beginFrom, *beginTo))
             {
                 auto cutResult = cutSequence(beginFrom, ::std::next(beginFrom));
 
@@ -1025,7 +1068,7 @@ private:
             }
         }
 
-        return { static_cast<iterator>(resultBegin), static_cast<iterator>(beginFrom) };
+        return { static_cast<iterator>(resultBegin), static_cast<iterator>(endTo) };
     }
 };
 
