@@ -1,18 +1,11 @@
 cmake_minimum_required(VERSION 3.1)
-project(XORList)
+project(XORList CXX)
 
 set(CMAKE_CXX_STANDARD 11)
 
-if (MSVC)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4")
-else()
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic")
-endif()
-
 include_directories(include)
 
-
-enable_testing()
+find_package(Threads)
 
 if (CMAKE_VERSION VERSION_LESS 3.2)
     set(UPDATE_DISCONNECTED_IF_AVAILABLE "")
@@ -21,7 +14,22 @@ else()
 endif()
 include(third-party/DownloadProject/DownloadProject.cmake)
 
+# =============================== CMAKE MODULES =========================================
+download_project(PROJ                cmake-modules
+                 GIT_REPOSITORY      https://github.com/NikitkoCent/cmake-modules
+                 GIT_TAG             changes
+                 ${UPDATE_DISCONNECTED_IF_AVAILABLE}
+                )
+# =============================== END CMAKE MODULES =====================================
+
+# ================================ SETUP WARNINGS =======================================
+include(${cmake-modules_SOURCE_DIR}/EnableExtraCompilerWarnings.cmake)
+globally_enable_extra_compiler_warnings()
+# ============================== END SETUP WARNINGS =====================================
+
 # ================================== GOOGLETEST =========================================
+enable_testing()
+
 download_project(PROJ                googletest
                  GIT_REPOSITORY      https://github.com/google/googletest.git
                  GIT_TAG             master
@@ -47,20 +55,33 @@ endif()
 add_executable(unittesting tests/list.cpp
                            include/xor_list.h
                            tests/iterator.cpp)
-target_link_libraries(unittesting gtest gmock_main)
+target_link_libraries(unittesting gtest gmock_main Threads::Threads)
 
 add_test(NAME do_unittests COMMAND unittesting)
 
 # ================================= TEST COVERAGE =======================================
-download_project(PROJ                googletest-coverage
-                 GIT_REPOSITORY      https://github.com/NikitkoCent/cmake-modules
-                 GIT_TAG             changes
-                 ${UPDATE_DISCONNECTED_IF_AVAILABLE}
-                )
-include(${googletest-coverage_SOURCE_DIR}/CodeCoverage.cmake)
+if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+    include(${cmake-modules_SOURCE_DIR}/CodeCoverage.cmake)
 
-APPEND_COVERAGE_COMPILER_FLAGS()
-SETUP_TARGET_FOR_COVERAGE(NAME collect_coverage
-                          EXECUTABLE ctest
-                          DEPENDENCIES unittesting)
+    if (CMAKE_CXX_FLAGS_COVERAGE)
+        APPEND_COVERAGE_COMPILER_FLAGS()
+        SETUP_TARGET_FOR_COVERAGE(NAME collect_coverage
+                                  EXECUTABLE ctest
+                                  DEPENDENCIES unittesting)
+    endif()
+endif()
 # ===============================  END TEST COVERAGE ====================================
+
+MESSAGE("Build type : ${CMAKE_BUILD_TYPE}")
+MESSAGE("Used compiler : ${CMAKE_CXX_COMPILER}")
+if (CMAKE_BUILD_TYPE EQUAL "Debug")
+    MESSAGE("Compiler flags : ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_DEBUG}")
+elseif (CMAKE_BUILD_TYPE EQUAL "Release")
+    MESSAGE("Compiler flags : ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_RELEASE}")
+elseif (CMAKE_BUILD_TYPE EQUAL "RelWithDebInfo")
+    MESSAGE("Compiler flags : ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
+elseif (CMAKE_BUILD_TYPE EQUAL "MinSizeRel")
+    MESSAGE("Compiler flags : ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_MINSIZEREL}")
+else()
+    MESSAGE("Compiler flags : ${CMAKE_CXX_FLAGS}")
+endif()
