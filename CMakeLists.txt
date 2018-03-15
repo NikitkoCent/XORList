@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.1)
 project(XORList)
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 11)
 
 if (MSVC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4")
@@ -44,7 +44,9 @@ if (CMAKE_VERSION VERSION_LESS 2.8.11)
 endif()
 # ================================ GOOGLETEST END =======================================
 
-add_executable(unittesting tests/empty.cpp)
+add_executable(unittesting tests/list.cpp
+                           include/xor_list.h
+                           tests/iterator.cpp)
 target_link_libraries(unittesting gtest gmock_main)
 
 add_test(NAME do_unittests COMMAND unittesting)
