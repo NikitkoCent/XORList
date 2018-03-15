@@ -572,3 +572,64 @@ TEST(LIST, SWAP_GENERICS2)
     ASSERT_EQ(l2.size(), 10U);
     ASSERT_THAT(l2, ::testing::ElementsAre(1, -2, 5, 65, 3, 42, 67, 35, 7, -10));
 }
+
+
+TEST(LIST, UNIQUE_EMPTY)
+{
+    LinkedList<Value<int>> list;
+
+    list.unique();
+
+    ASSERT_TRUE(list.empty());
+    ASSERT_THAT(list, ::testing::ElementsAre());
+}
+
+TEST(LIST, UNIQUE_SINGLE)
+{
+    LinkedList<Value<int>> list{-30};
+
+    list.unique();
+
+    ASSERT_EQ(list.size(), 1U);
+    ASSERT_THAT(list, ::testing::ElementsAre(-30));
+}
+
+TEST(LIST, UNIQUE_TWOS_SAME)
+{
+    LinkedList<Value<int>> list{-30, -30};
+
+    list.unique();
+
+    ASSERT_EQ(list.size(), 1U);
+    ASSERT_THAT(list, ::testing::ElementsAre(-30));
+}
+
+TEST(LIST, UNIQUE_TWOS_NOTSAME)
+{
+    LinkedList<Value<int>> list{-30, 5};
+
+    list.unique();
+
+    ASSERT_EQ(list.size(), 2U);
+    ASSERT_THAT(list, ::testing::ElementsAre(-30, 5));
+}
+
+TEST(LIST, UNIQUE_GENERIC1)
+{
+    LinkedList<Value<int>> list{-1, -1, 2, -1, 2, 2, -1, -1, -1};
+
+    list.unique();
+
+    ASSERT_EQ(list.size(), 5U);
+    ASSERT_THAT(list, ::testing::ElementsAre(-1, 2, -1, 2, -1));
+}
+
+TEST(LIST, UNIQUE_GENERIC2)
+{
+    LinkedList<Value<int>> list{100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100};
+
+    list.unique();
+
+    ASSERT_EQ(list.size(), 1U);
+    ASSERT_THAT(list, ::testing::ElementsAre(100));
+}
