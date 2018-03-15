@@ -895,30 +895,28 @@ private:
 
     void swapWithoutAllocators(LinkedList &other)
     {
-        const auto thisBegin = cbegin();
-        const auto thisEnd = cend();
         const auto thisDistance = size();
-
-        const auto otherBegin = other.cbegin();
-        const auto otherEnd = other.cend();
         const auto otherDistance = other.size();
 
         if (!empty())
         {
-            cutSequence(thisBegin, thisEnd, thisDistance);
+            auto thisCutResult = cutSequenceFromThis(cbegin(), cend(), thisDistance);
 
             if (!other.empty())
             {
-                other.cutSequence(otherBegin, otherEnd, otherDistance);
-                (void)emplaceBefore(cbegin(), otherBegin, otherEnd, otherDistance);
+                auto otherCutResult = other.cutSequenceFromThis(other.cbegin(), other.cend(), otherDistance);
+                (void)insertSequenceToThisBefore(cbegin(), otherCutResult.cutted.first, otherCutResult.cutted.first,
+                                                 otherDistance);
             }
 
-            (void)other.emplaceBefore(other.cbegin(), thisBegin, thisEnd, thisDistance);
+            (void)other.insertSequenceToThisBefore(other.cbegin(), thisCutResult.cutted.first,
+                                                   thisCutResult.cutted.second, thisDistance);
         }
         else if (!other.empty())
         {
-            other.cutSequence(otherBegin, otherEnd, otherDistance);
-            (void)emplaceBefore(cbegin(), otherBegin, otherEnd, otherDistance);
+            auto otherCutResult = other.cutSequenceFromThis(other.cbegin(), other.cend(), otherDistance);
+            (void)insertSequenceToThisBefore(cbegin(), otherCutResult.cutted.first, otherCutResult.cutted.first,
+                                             otherDistance);
         }
     }
 

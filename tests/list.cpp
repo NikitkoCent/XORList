@@ -479,3 +479,43 @@ TEST(LIST, SORT_GENERIC2)
     ASSERT_EQ(list.size(), 10U);
     ASSERT_THAT(list, ::testing::ElementsAre(-10, -2, 1, 3, 5, 7, 35, 42, 65, 67));
 }
+
+
+TEST(LIST, SWAP_EMPTY)
+{
+    LinkedList<Value<int>> l1, l2;
+
+    l1.swap(l2);
+
+    ASSERT_TRUE(l1.empty());
+    ASSERT_THAT(l1, ::testing::ElementsAre());
+
+    ASSERT_TRUE(l2.empty());
+    ASSERT_THAT(l2, ::testing::ElementsAre());
+}
+
+TEST(LIST, SWAP_EMPTY_SINGLE)
+{
+    LinkedList<Value<int>> l1, l2{-123};
+
+    l1.swap(l2);
+
+    ASSERT_EQ(l1.size(), 1U);
+    ASSERT_THAT(l1, ::testing::ElementsAre(-123));
+
+    ASSERT_TRUE(l2.empty());
+    ASSERT_THAT(l2, ::testing::ElementsAre());
+}
+
+TEST(LIST, SWAP_SINGLE_EMPTY)
+{
+    LinkedList<Value<int>> l1{-123}, l2;
+
+    l1.swap(l2);
+
+    ASSERT_TRUE(l1.empty());
+    ASSERT_THAT(l1, ::testing::ElementsAre());
+
+    ASSERT_EQ(l2.size(), 1U);
+    ASSERT_THAT(l2, ::testing::ElementsAre(-123));
+}
