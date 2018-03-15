@@ -388,3 +388,94 @@ TEST(LIST, MERGE_GENERIC2)
     ASSERT_EQ(l2.size(), 8U);
     ASSERT_THAT(l2, ::testing::ElementsAre(0, 1, 2, 2, 3, 4, 4, 8));
 }
+
+
+TEST(LIST, SORT_EMPTY)
+{
+    LinkedList<Value<int>> list;
+
+    list.sort();
+
+    ASSERT_TRUE(list.empty());
+    ASSERT_THAT(list, ::testing::ElementsAre());
+}
+
+TEST(LIST, SORT_SINGLE)
+{
+    LinkedList<Value<int>> list{10};
+
+    list.sort();
+
+    ASSERT_EQ(list.size(), 1U);
+    ASSERT_THAT(list, ::testing::ElementsAre(10));
+}
+
+TEST(LIST, SORT_NO_TWOS)
+{
+    LinkedList<Value<int>> list{-10, 10};
+
+    list.sort();
+
+    ASSERT_EQ(list.size(), 2U);
+    ASSERT_THAT(list, ::testing::ElementsAre(-10, 10));
+}
+
+TEST(LIST, SORT_TWOS)
+{
+    LinkedList<Value<int>> list{10, -10};
+
+    list.sort();
+
+    ASSERT_EQ(list.size(), 2U);
+    ASSERT_THAT(list, ::testing::ElementsAre(-10, 10));
+}
+
+TEST(LIST, SORT_EQUAL_TWOS)
+{
+    LinkedList<Value<int>> list{10, 10};
+
+    list.sort();
+
+    ASSERT_EQ(list.size(), 2U);
+    ASSERT_THAT(list, ::testing::ElementsAre(10, 10));
+}
+
+TEST(LIST, SORT_SORTED)
+{
+    LinkedList<Value<int>> list{1, 2, 3, 4, 5, 6, 7, 8, 9};
+
+    list.sort();
+
+    ASSERT_EQ(list.size(), 9U);
+    ASSERT_THAT(list, ::testing::ElementsAre(1, 2, 3, 4, 5, 6, 7, 8, 9));
+}
+
+TEST(LIST, SORT_SORTED_REVERSE)
+{
+    LinkedList<Value<int>> list{9, 8, 7, 6, 5, 4, 3, 2, 1};
+
+    list.sort();
+
+    ASSERT_EQ(list.size(), 9U);
+    ASSERT_THAT(list, ::testing::ElementsAre(1, 2, 3, 4, 5, 6, 7, 8, 9));
+}
+
+TEST(LIST, SORT_GENERIC1)
+{
+    LinkedList<Value<int>> list{1, -2, 5, 65, 3, 42, 67, 35, 7, -10};
+
+    list.sort();
+
+    ASSERT_EQ(list.size(), 10U);
+    ASSERT_THAT(list, ::testing::ElementsAre(-10, -2, 1, 3, 5, 7, 35, 42, 65, 67));
+}
+
+TEST(LIST, SORT_GENERIC2)
+{
+    LinkedList<Value<int>> list{-10, 7, 35, 67, 42, 3, 65, 5, -2, 1};
+
+    list.sort();
+
+    ASSERT_EQ(list.size(), 10U);
+    ASSERT_THAT(list, ::testing::ElementsAre(-10, -2, 1, 3, 5, 7, 35, 42, 65, 67));
+}
