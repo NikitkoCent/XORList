@@ -915,7 +915,7 @@ private:
         else if (!other.empty())
         {
             auto otherCutResult = other.cutSequenceFromThis(other.cbegin(), other.cend(), otherDistance);
-            (void)insertSequenceToThisBefore(cbegin(), otherCutResult.cutted.first, otherCutResult.cutted.first,
+            (void)insertSequenceToThisBefore(cbegin(), otherCutResult.cutted.first, otherCutResult.cutted.second,
                                              otherDistance);
         }
     }
