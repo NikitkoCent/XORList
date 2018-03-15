@@ -47,7 +47,7 @@ endif()
 add_executable(unittesting tests/empty.cpp)
 target_link_libraries(unittesting gtest gmock_main)
 
-add_test(NAME do_tests COMMAND unittesting)
+add_test(NAME do_unittests COMMAND unittesting)
 
 # ================================= TEST COVERAGE =======================================
 download_project(PROJ                googletest-coverage
