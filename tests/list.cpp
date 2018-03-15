@@ -633,3 +633,112 @@ TEST(LIST, UNIQUE_GENERIC2)
     ASSERT_EQ(list.size(), 1U);
     ASSERT_THAT(list, ::testing::ElementsAre(100));
 }
+
+
+TEST(LIST, PUSH1)
+{
+    LinkedList<Value<int>> list;
+
+    list.push_back(0);
+    list.push_front(-1);
+    list.push_back(1);
+    list.push_back(2);
+
+    ASSERT_EQ(list.size(), 4U);
+    ASSERT_THAT(list, ::testing::ElementsAre(-1, 0, 1, 2));
+}
+
+TEST(LIST, PUSH2)
+{
+    LinkedList<Value<int>> list;
+
+    list.push_front(0);
+    list.push_back(-1);
+    list.push_front(1);
+    list.push_front(2);
+
+    ASSERT_EQ(list.size(), 4U);
+    ASSERT_THAT(list, ::testing::ElementsAre(2, 1, 0, -1));
+}
+
+
+TEST(LIST, EMPLACE1)
+{
+    LinkedList<Value<int>> list;
+
+    list.emplace_back(0);
+    list.emplace_front(-1);
+    list.emplace_back(1);
+    list.emplace_back(2);
+
+    ASSERT_EQ(list.size(), 4U);
+    ASSERT_THAT(list, ::testing::ElementsAre(-1, 0, 1, 2));
+}
+
+TEST(LIST, EMPLACE2)
+{
+    LinkedList<Value<int>> list;
+
+    list.emplace_front(0);
+    list.emplace_back(-1);
+    list.emplace_front(1);
+    list.emplace_front(2);
+
+    ASSERT_EQ(list.size(), 4U);
+    ASSERT_THAT(list, ::testing::ElementsAre(2, 1, 0, -1));
+}
+
+
+TEST(LIST, POP_BACK_SINGLE)
+{
+    LinkedList<Value<int>> list{ 5 };
+
+    list.pop_back();
+
+    ASSERT_TRUE(list.empty());
+    ASSERT_THAT(list, ::testing::ElementsAre());
+}
+
+TEST(LIST, POP_FRONT_SINGLE)
+{
+    LinkedList<Value<int>> list{5};
+
+    list.pop_front();
+
+    ASSERT_TRUE(list.empty());
+    ASSERT_THAT(list, ::testing::ElementsAre());
+}
+
+TEST(LIST, POPS1)
+{
+    LinkedList<Value<int>> list{ 5, 10, 15 };
+
+    list.pop_back();
+    ASSERT_EQ(list.size(), 2U);
+    ASSERT_THAT(list, ::testing::ElementsAre(5, 10));
+
+    list.pop_back();
+    ASSERT_EQ(list.size(), 1U);
+    ASSERT_THAT(list, ::testing::ElementsAre(5));
+
+    list.pop_front();
+    ASSERT_TRUE(list.empty());
+    ASSERT_THAT(list, ::testing::ElementsAre());
+}
+
+TEST(LIST, POPS2)
+{
+    LinkedList<Value<int>> list{5, 10, 15};
+
+    list.pop_front();
+    ASSERT_EQ(list.size(), 2U);
+    ASSERT_THAT(list, ::testing::ElementsAre(10, 15));
+
+    list.pop_front();
+    ASSERT_EQ(list.size(), 1U);
+    ASSERT_THAT(list, ::testing::ElementsAre(15));
+
+    list.pop_back();
+    ASSERT_TRUE(list.empty());
+    ASSERT_THAT(list, ::testing::ElementsAre());
+}
