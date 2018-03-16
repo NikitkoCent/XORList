@@ -1,7 +1,6 @@
 #include <xor_list.h>
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
-#include <list>
 
 
 template<typename T>
@@ -677,6 +676,34 @@ TEST(LIST, PUSH2)
     list.push_back(-1);
     list.push_front(1);
     list.push_front(2);
+
+    ASSERT_EQ(list.size(), 4U);
+    ASSERT_THAT(list, ::testing::ElementsAre(2, 1, 0, -1));
+}
+
+TEST(LIST, PUSH_CREF_1)
+{
+    LinkedList<Value<int>> list;
+    const Value<int> values[4] = {0, -1, 1, 2};
+
+    list.push_back(values[0]);
+    list.push_front(values[1]);
+    list.push_back(values[2]);
+    list.push_back(values[3]);
+
+    ASSERT_EQ(list.size(), 4U);
+    ASSERT_THAT(list, ::testing::ElementsAre(-1, 0, 1, 2));
+}
+
+TEST(LIST, PUSH_CREF_2)
+{
+    LinkedList<Value<int>> list;
+    const Value<int> values[4] = {0, -1, 1, 2};
+
+    list.push_front(values[0]);
+    list.push_back(values[1]);
+    list.push_front(values[2]);
+    list.push_front(values[3]);
 
     ASSERT_EQ(list.size(), 4U);
     ASSERT_THAT(list, ::testing::ElementsAre(2, 1, 0, -1));
