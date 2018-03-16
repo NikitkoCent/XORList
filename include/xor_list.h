@@ -294,14 +294,21 @@ public:
         }
 
         ::std::array<NullableRange, 3> sortedRanges;
-        ::std::uint32_t maxUnfilled = 0;
 
         while (!empty())
         {
             Range newRange = cutSequenceFromThis(cbegin(), ++cbegin(), 1).cutted;
-            for (::std::uint32_t i = 0; i < maxUnfilled; ++i)
+
+            ::std::uint32_t i = 0;
+            for ( ; i < sortedRanges.size(); ++i)
             {
-                if (!sortedRanges[i].isNull)
+                if (sortedRanges[i].isNull)
+                {
+                    sortedRanges[i].range = newRange;
+                    sortedRanges[i].isNull = false;
+                    break;
+                }
+                else
                 {
                     newRange = mergeSequences(sortedRanges[i].range.first, sortedRanges[i].range.second,
                                               newRange.first, newRange.second, isLess);
@@ -309,20 +316,15 @@ public:
                 }
             }
 
-            if (maxUnfilled == sortedRanges.size())
+            if (i == sortedRanges.size())
             {
                 sortedRanges.back().range = newRange;
                 sortedRanges.back().isNull = false;
             }
-            else
-            {
-                sortedRanges[maxUnfilled].range = newRange;
-                sortedRanges[maxUnfilled++].isNull = false;
-            }
         }
 
         NullableRange result;
-        for (::std::uint32_t i = 0; i < maxUnfilled; ++i)
+        for (::std::uint32_t i = 0; i < sortedRanges.size(); ++i)
         {
             if (!sortedRanges[i].isNull)
             {
