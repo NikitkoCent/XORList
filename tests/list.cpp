@@ -480,6 +480,27 @@ TEST(LIST, SORT_GENERIC2)
     ASSERT_THAT(list, ::testing::ElementsAre(-10, -2, 1, 3, 5, 7, 35, 42, 65, 67));
 }
 
+TEST(LIST, SORT_GENERIC3)
+{
+    LinkedList<Value<int>> list{1, -2, 65, 3, 67, 35, -10};
+
+    list.sort();
+
+    ASSERT_EQ(list.size(), 7U);
+    ASSERT_THAT(list, ::testing::ElementsAre(-10, -2, 1, 3, 35, 65, 67));
+}
+
+TEST(LIST, SORT_GENERIC4)
+{
+    LinkedList<Value<int>> list{-10, 35, 67, 3, 65, -2, 1};
+
+    list.sort();
+
+    ASSERT_EQ(list.size(), 7U);
+    ASSERT_THAT(list, ::testing::ElementsAre(-10, -2, 1, 3, 35, 65, 67));
+}
+
+
 
 TEST(LIST, SWAP_EMPTY)
 {
