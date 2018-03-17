@@ -1117,3 +1117,114 @@ TEST(LIST, ASSIGN_RANGE_WITHOUT_RESIZE)
     ASSERT_EQ(list.size(), 5U);
     ASSERT_THAT(list, ::testing::ElementsAre(1, 2, 3, 4, 5));
 }
+
+
+TEST(LIST, RESIZE_EMPTY_TO_EMPTY)
+{
+    LinkedList<Value<int>> list;
+
+    list.resize(0, 50);
+
+    ASSERT_TRUE(list.empty());
+    ASSERT_THAT(list, ::testing::ElementsAre());
+}
+
+TEST(LIST, RESIZE_EMPTY_TO_SINGLE)
+{
+    LinkedList<Value<int>> list;
+
+    list.resize(1, 50);
+
+    ASSERT_EQ(list.size(), 1U);
+    ASSERT_THAT(list, ::testing::ElementsAre(50));
+}
+
+TEST(LIST, RESIZE_EMPTY_TO_SEVERAL)
+{
+    LinkedList<Value<int>> list;
+
+    list.resize(5, 50);
+
+    ASSERT_EQ(list.size(), 5U);
+    ASSERT_THAT(list, ::testing::ElementsAre(50, 50, 50, 50, 50));
+}
+
+TEST(LIST, RESIZE_SINGLE_TO_EMPTY)
+{
+    LinkedList<Value<int>> list{1266};
+
+    list.resize(0, 50);
+
+    ASSERT_TRUE(list.empty());
+    ASSERT_THAT(list, ::testing::ElementsAre());
+}
+
+TEST(LIST, RESIZE_SINGLE_TO_SINGLE)
+{
+    LinkedList<Value<int>> list{1266};
+
+    list.resize(1, 50);
+
+    ASSERT_EQ(list.size(), 1U);
+    ASSERT_THAT(list, ::testing::ElementsAre(1266));
+}
+
+TEST(LIST, RESIZE_SINGLE_TO_SEVERAL)
+{
+    LinkedList<Value<int>> list{1266};
+
+    list.resize(5, 50);
+
+    ASSERT_EQ(list.size(), 5U);
+    ASSERT_THAT(list, ::testing::ElementsAre(1266, 50, 50, 50, 50));
+}
+
+TEST(LIST, RESIZE_SEVERAL_TO_EMPTY)
+{
+    LinkedList<Value<int>> list{123, 56, 102, -12111};
+
+    list.resize(0, 50);
+
+    ASSERT_TRUE(list.empty());
+    ASSERT_THAT(list, ::testing::ElementsAre());
+}
+
+TEST(LIST, RESIZE_SEVERAL_TO_SINGLE)
+{
+    LinkedList<Value<int>> list{123, 56, 102, -12111};
+
+    list.resize(1, 50);
+
+    ASSERT_EQ(list.size(), 1U);
+    ASSERT_THAT(list, ::testing::ElementsAre(123));
+}
+
+TEST(LIST, RESIZE_SEVERAL_TO_SEVERAL_TRUNCATE)
+{
+    LinkedList<Value<int>> list{123, 56, 102, -12111};
+
+    list.resize(2, 50);
+
+    ASSERT_EQ(list.size(), 2U);
+    ASSERT_THAT(list, ::testing::ElementsAre(123, 56));
+}
+
+TEST(LIST, RESIZE_SEVERAL_TO_SEVERAL_APPEND)
+{
+    LinkedList<Value<int>> list{123, 56, 102, -12111};
+
+    list.resize(10, 50);
+
+    ASSERT_EQ(list.size(), 10U);
+    ASSERT_THAT(list, ::testing::ElementsAre(123, 56, 102, -12111, 50, 50, 50, 50, 50, 50));
+}
+
+TEST(LIST, RESIZE_SEVERAL_TO_SEVERAL_WITHOUT_RESIZE)
+{
+    LinkedList<Value<int>> list{123, 56, 102, -12111};
+
+    list.resize(4, 50);
+
+    ASSERT_EQ(list.size(), 4U);
+    ASSERT_THAT(list, ::testing::ElementsAre(123, 56, 102, -12111));
+}
