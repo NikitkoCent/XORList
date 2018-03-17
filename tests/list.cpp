@@ -790,3 +790,82 @@ TEST(LIST, POPS2)
     ASSERT_TRUE(list.empty());
     ASSERT_THAT(list, ::testing::ElementsAre());
 }
+
+
+TEST(LIST, REVERSE_EMPTY)
+{
+    LinkedList<Value<int>> list;
+
+    list.reverse();
+
+    ASSERT_TRUE(list.empty());
+    ASSERT_THAT(list, ::testing::ElementsAre());
+}
+
+TEST(LIST, REVERSE_SINGLE)
+{
+    LinkedList<Value<int>> list{500};
+
+    list.reverse();
+
+    ASSERT_EQ(list.size(), 1U);
+    ASSERT_THAT(list, ::testing::ElementsAre(500));
+}
+
+TEST(LIST, REVERSE_GENERIC1)
+{
+    LinkedList<Value<int>> list{1, 2, 3, 4, 5, 6, 7, 8, 9};
+
+    list.reverse();
+
+    ASSERT_EQ(list.size(), 9U);
+    ASSERT_THAT(list, ::testing::ElementsAre(9, 8, 7, 6, 5, 4, 3, 2, 1));
+}
+
+TEST(LIST, REVERSE_GENERIC2)
+{
+    LinkedList<Value<int>> list{1, 2};
+
+    list.reverse();
+
+    ASSERT_EQ(list.size(), 2U);
+    ASSERT_THAT(list, ::testing::ElementsAre(2, 1));
+}
+
+
+TEST(LIST, BACK_SINGLE)
+{
+    LinkedList<Value<int>> list{ 50 };
+    const auto &listRef = list;
+
+    ASSERT_EQ(list.back(), 50);
+    ASSERT_EQ(listRef.back(), 50);
+}
+
+TEST(LIST, BACK_GENERIC)
+{
+    LinkedList<Value<int>> list{1, 2, 3, 4, 5, 6, 7, 8, 9};
+    const auto &listRef = list;
+
+    ASSERT_EQ(list.back(), 9);
+    ASSERT_EQ(listRef.back(), 9);
+}
+
+
+TEST(LIST, FRONT_SINGLE)
+{
+    LinkedList<Value<int>> list{50};
+    const auto &listRef = list;
+
+    ASSERT_EQ(list.front(), 50);
+    ASSERT_EQ(listRef.front(), 50);
+}
+
+TEST(LIST, FRONT_GENERIC)
+{
+    LinkedList<Value<int>> list{1, 2, 3, 4, 5, 6, 7, 8, 9};
+    const auto &listRef = list;
+
+    ASSERT_EQ(list.front(), 1);
+    ASSERT_EQ(listRef.front(), 1);
+}
