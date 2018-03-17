@@ -347,7 +347,7 @@ public:
     // strong exception-safe guarantee
     iterator insert(const_iterator position, const_reference val)
     {
-        //emplaceBefore noexcept!
+        //insertNodeToThisBefore noexcept!
         return insertNodeToThisBefore(position, createNode(val)).first;
     }
 
@@ -433,15 +433,15 @@ public:
                                                 typename ::std::iterator_traits<InputIterator>::iterator_category>::value>::type
     assign(InputIterator first, InputIterator last)
     {
-        for (T &element : *this)
+        for (auto iter = begin(); iter != end(); ++iter, ++first)
         {
             if (first == last)
             {
+                (void)erase(iter, end());
                 return;
             }
 
-            element = *first;
-            ++first;
+            *iter = *first;
         }
 
         for ( ; first != last; ++first)
@@ -461,6 +461,14 @@ public:
         if (iter != end())
         {
             erase(iter, end());
+        }
+        else
+        {
+            while (count > 0)
+            {
+                emplace_back(val);
+                --count;
+            }
         }
     }
 
