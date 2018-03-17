@@ -14,6 +14,9 @@ struct Value
     {
     }
 
+    ~Value() { value = T{}; }
+
+
     operator T&() { return value; }
     operator const T&() const { return value; }
 };
@@ -868,4 +871,249 @@ TEST(LIST, FRONT_GENERIC)
 
     ASSERT_EQ(list.front(), 1);
     ASSERT_EQ(listRef.front(), 1);
+}
+
+
+TEST(LIST, ASSIGN_COUNT_VAL_EMPTY_0)
+{
+    LinkedList<Value<int>> list;
+
+    list.assign(0, -135);
+
+    ASSERT_TRUE(list.empty());
+    ASSERT_THAT(list, ::testing::ElementsAre());
+}
+
+TEST(LIST, ASSIGN_COUNT_VAL_EMPTY)
+{
+    LinkedList<Value<int>> list;
+
+    list.assign(10, -135);
+
+    ASSERT_EQ(list.size(), 10U);
+    ASSERT_THAT(list, ::testing::ElementsAre(-135, -135, -135, -135, -135, -135, -135, -135, -135, -135));
+}
+
+TEST(LIST, ASSIGN_COUNT_VAL_TRUNCATE_TO_EMPTY_SINGLE)
+{
+    LinkedList<Value<int>> list{ -45672 };
+
+    list.assign(0, -135);
+
+    ASSERT_TRUE(list.empty());
+    ASSERT_THAT(list, ::testing::ElementsAre());
+}
+
+TEST(LIST, ASSIGN_COUNT_VAL_TRUNCATE_TO_EMPTY_SEVERAL)
+{
+    LinkedList<Value<int>> list{-45672, 234, -2353, 1, 21};
+
+    list.assign(0, -135);
+
+    ASSERT_TRUE(list.empty());
+    ASSERT_THAT(list, ::testing::ElementsAre());
+}
+
+TEST(LIST, ASSIGN_COUNT_VAL_TRUNCATE_TO_SINGLE_SEVERAL)
+{
+    LinkedList<Value<int>> list{-45672, 234, -2353, 1, 21};
+
+    list.assign(1, -135);
+
+    ASSERT_EQ(list.size(), 1U);
+    ASSERT_THAT(list, ::testing::ElementsAre(-135));
+}
+
+TEST(LIST, ASSIGN_COUNT_VAL_TRUNCATE_SEVERAL)
+{
+    LinkedList<Value<int>> list{-45672, 234, -2353, 1, 21};
+
+    list.assign(3, 200);
+
+    ASSERT_EQ(list.size(), 3U);
+    ASSERT_THAT(list, ::testing::ElementsAre(200, 200, 200));
+}
+
+TEST(LIST, ASSIGN_COUNT_VAL_APPEND_SINGLE_FROM_EMPTY)
+{
+    LinkedList<Value<int>> list;
+
+    list.assign(1, 2018);
+
+    ASSERT_EQ(list.size(), 1U);
+    ASSERT_THAT(list, ::testing::ElementsAre(2018));
+}
+
+TEST(LIST, ASSIGN_COUNT_VAL_APPEND_SEVERAL_FROM_EMPTY)
+{
+    LinkedList<Value<int>> list;
+
+    list.assign(5, 2018);
+
+    ASSERT_EQ(list.size(), 5U);
+    ASSERT_THAT(list, ::testing::ElementsAre(2018, 2018, 2018, 2018, 2018));
+}
+
+TEST(LIST, ASSIGN_COUNT_VAL_APPEND_SINGLE)
+{
+    LinkedList<Value<int>> list{-100, 0, 100, 200, 300};
+
+    list.assign(6, 2018);
+
+    ASSERT_EQ(list.size(), 6U);
+    ASSERT_THAT(list, ::testing::ElementsAre(2018, 2018, 2018, 2018, 2018, 2018));
+}
+
+TEST(LIST, ASSIGN_COUNT_VAL_APPEND_SEVERAL)
+{
+    LinkedList<Value<int>> list{-100, 0, 100, 200, 300};;
+
+    list.assign(10, 98);
+
+    ASSERT_EQ(list.size(), 10U);
+    ASSERT_THAT(list, ::testing::ElementsAre(98, 98, 98, 98, 98, 98, 98, 98, 98, 98));
+}
+
+TEST(LIST, ASSIGN_COUNT_VAL_WITHOUT_RESIZE)
+{
+    LinkedList<Value<int>> list{-100, 0, 100, 200, 300};
+
+    list.assign(5, 98);
+
+    ASSERT_EQ(list.size(), 5U);
+    ASSERT_THAT(list, ::testing::ElementsAre(98, 98, 98, 98, 98));
+}
+
+TEST(LIST, ASSIGN_RANGE_EMPTY_0)
+{
+    LinkedList<Value<int>> list;
+
+    list.assign((Value<int>*)nullptr, (Value<int>*)nullptr);
+
+    ASSERT_TRUE(list.empty());
+    ASSERT_THAT(list, ::testing::ElementsAre());
+}
+
+TEST(LIST, ASSIGN_RANGE_EMPTY)
+{
+    LinkedList<Value<int>> list;
+
+    {
+        Value<int> range[9] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
+        list.assign(&range[0], ((Value<int>*)range) + 9);
+    }
+
+    ASSERT_EQ(list.size(), 9U);
+    ASSERT_THAT(list, ::testing::ElementsAre(1, 2, 3, 4, 5, 6, 7, 8, 9));
+}
+
+TEST(LIST, ASSIGN_RANGE_TRUNCATE_TO_EMPTY_SINGLE)
+{
+    LinkedList<Value<int>> list{-45672};
+
+    list.assign((Value<int>*)nullptr, (Value<int>*)nullptr);
+
+    ASSERT_TRUE(list.empty());
+    ASSERT_THAT(list, ::testing::ElementsAre());
+}
+
+TEST(LIST, ASSIGN_RANGE_TRUNCATE_TO_EMPTY_SEVERAL)
+{
+    LinkedList<Value<int>> list{-45672, 234, -2353, 1, 21};
+
+    list.assign((Value<int>*)nullptr, (Value<int>*)nullptr);
+
+    ASSERT_TRUE(list.empty());
+    ASSERT_THAT(list, ::testing::ElementsAre());
+}
+
+TEST(LIST, ASSIGN_RANGE_TRUNCATE_TO_SINGLE_SEVERAL)
+{
+    LinkedList<Value<int>> list{-45672, 234, -2353, 1, 21};
+
+    {
+        Value<int> range[1] = {-135};
+        list.assign(&range[0], ((Value<int>*)range) + 1);
+    }
+
+    ASSERT_EQ(list.size(), 1U);
+    ASSERT_THAT(list, ::testing::ElementsAre(-135));
+}
+
+TEST(LIST, ASSIGN_RANGE_TRUNCATE_SEVERAL)
+{
+    LinkedList<Value<int>> list{-45672, 234, -2353, 1, 21};
+
+    {
+        Value<int> range[3] = {-5, 25, 8};
+        list.assign(&range[0], ((Value<int>*)range) + 3);
+    }
+
+    ASSERT_EQ(list.size(), 3U);
+    ASSERT_THAT(list, ::testing::ElementsAre(-5, 25, 8));
+}
+
+TEST(LIST, ASSIGN_RANGE_APPEND_SINGLE_FROM_EMPTY)
+{
+    LinkedList<Value<int>> list;
+
+    {
+        Value<int> range[1] = {2018};
+        list.assign(&range[0], ((Value<int>*)range) + 1);
+    }
+
+    ASSERT_EQ(list.size(), 1U);
+    ASSERT_THAT(list, ::testing::ElementsAre(2018));
+}
+
+TEST(LIST, ASSIGN_RANGE_APPEND_SEVERAL_FROM_EMPTY)
+{
+    LinkedList<Value<int>> list;
+
+    {
+        Value<int> range[9] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
+        list.assign(&range[0], ((Value<int>*)range) + 9);
+    }
+
+    ASSERT_EQ(list.size(), 9U);
+    ASSERT_THAT(list, ::testing::ElementsAre(1, 2, 3, 4, 5, 6, 7, 8, 9));
+}
+
+TEST(LIST, ASSIGN_RANGE_APPEND_SINGLE)
+{
+    LinkedList<Value<int>> list{-100, 0, 100, 200, 300};
+
+    {
+        Value<int> range[9] = {1, 2, 3, 4, 5, 6};
+        list.assign(&range[0], ((Value<int>*)range) + 6);
+    }
+
+    ASSERT_EQ(list.size(), 6U);
+    ASSERT_THAT(list, ::testing::ElementsAre(1, 2, 3, 4, 5, 6));
+}
+
+TEST(LIST, ASSIGN_RANGE_APPEND_SEVERAL)
+{
+    LinkedList<Value<int>> list{-100, 0, 100, 200, 300};;
+
+    {
+        Value<int> range[9] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
+        list.assign(&range[0], ((Value<int>*)range) + 9);
+    }
+
+    ASSERT_EQ(list.size(), 9U);
+    ASSERT_THAT(list, ::testing::ElementsAre(1, 2, 3, 4, 5, 6, 7, 8, 9));
+}
+
+TEST(LIST, ASSIGN_RANGE_WITHOUT_RESIZE)
+{
+    LinkedList<Value<int>> list{-100, 0, 100, 200, 300};
+
+    {
+        Value<int> range[9] = {1, 2, 3, 4, 5};
+        list.assign(&range[0], ((Value<int>*)range) + 5);
+    }
+
+    ASSERT_EQ(list.size(), 5U);
+    ASSERT_THAT(list, ::testing::ElementsAre(1, 2, 3, 4, 5));
 }
