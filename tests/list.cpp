@@ -1,6 +1,8 @@
 #include <xor_list.h>
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
+#include <memory>
+#include <type_traits>
 
 
 template<typename T>
@@ -49,6 +51,79 @@ struct NonMovableValue : NonCopyableValue<T>
     NonMovableValue(NonMovableValue &&) = delete;
     NonMovableValue& operator=(NonMovableValue&&) = delete;
 };
+
+
+template<typename T>
+struct RequiredSwapAllocator : std::allocator<T>
+{
+public:
+    struct propagate_on_container_swap : std::true_type {};
+
+    template<typename R>
+    struct rebind
+    {
+        using other = RequiredSwapAllocator<R>;
+    };
+
+
+    using std::allocator<T>::allocator;
+};
+
+template<typename T>
+struct RequiredCopyOnAssignmentAllocator : std::allocator<T>
+{
+public:
+    struct propagate_on_container_copy_assignment : std::true_type {};
+
+    template<typename R>
+    struct rebind
+    {
+        using other = RequiredCopyOnAssignmentAllocator<R>;
+    };
+
+
+    using std::allocator<T>::allocator;
+};
+
+template<typename T>
+struct NonRequiredMoveOnAssignmentAllocator1 : std::allocator<T>
+{
+public:
+    struct propagate_on_container_move_assignment : std::false_type {};
+
+    template<typename R>
+    struct rebind
+    {
+        using other = NonRequiredMoveOnAssignmentAllocator1<R>;
+    };
+
+
+    using std::allocator<T>::allocator;
+};
+
+template<typename T>
+struct NonRequiredMoveOnAssignmentAllocator2 : std::allocator<T>
+{
+public:
+    struct propagate_on_container_move_assignment : std::false_type {};
+
+    template<typename R>
+    struct rebind
+    {
+        using other = NonRequiredMoveOnAssignmentAllocator2<R>;
+    };
+
+
+    using std::allocator<T>::allocator;
+
+
+    bool operator==(const NonRequiredMoveOnAssignmentAllocator2 &right) const noexcept
+    {
+        (void)right;
+        return false;
+    }
+};
+
 
 
 TEST(LIST, CONSTRUCTOR_DEFAULT)
@@ -210,6 +285,48 @@ TEST(LIST, COPY_ASSIGNMENT_NON_EMPTY_GREATER)
     ASSERT_THAT(l1, ::testing::ElementsAre(1, 2, 3, 4, 5, 6, 7, 8, 9));
 }
 
+TEST(LIST, COPY_ASSIGNMENT_SELF_SPECIAL_ALLOCATOR)
+{
+    LinkedList<Value<int>, RequiredCopyOnAssignmentAllocator<int>> list{1, 2, 3, 4, 5, 6, 7, 8, 9};
+
+    list = list;
+
+    ASSERT_EQ(list.size(), 9U);
+    ASSERT_THAT(list, ::testing::ElementsAre(1, 2, 3, 4, 5, 6, 7, 8, 9));
+}
+
+TEST(LIST, COPY_ASSIGNMENT_EMPTY_SPECIAL_ALLOCATOR)
+{
+    LinkedList<Value<int>, RequiredCopyOnAssignmentAllocator<int>> l1{1, 2, 3, 4, 5, 6, 7, 8, 9}, l2;
+
+    l1 = l2;
+
+    ASSERT_TRUE(l1.empty());
+    ASSERT_THAT(l1, ::testing::ElementsAre());
+}
+
+TEST(LIST, COPY_ASSIGNMENT_NON_EMPTY_LESS_SPECIAL_ALLOCATOR)
+{
+    LinkedList<Value<int>, RequiredCopyOnAssignmentAllocator<int>> l1{1, 2, 3, 4, 5, 6, 7, 8, 9}, l2{10, 20, 30, 40, 50, 60};
+
+    l1 = l2;
+    l2.clear();
+
+    ASSERT_EQ(l1.size(), 6U);
+    ASSERT_THAT(l1, ::testing::ElementsAre(10, 20, 30, 40, 50, 60));
+}
+
+TEST(LIST, COPY_ASSIGNMENT_NON_EMPTY_GREATER_SPECIAL_ALLOCATOR)
+{
+    LinkedList<Value<int>, RequiredCopyOnAssignmentAllocator<int>> l1{10, 20, 30, 40, 50, 60}, l2{1, 2, 3, 4, 5, 6, 7, 8, 9};
+
+    l1 = l2;
+    l2.clear();
+
+    ASSERT_EQ(l1.size(), 9U);
+    ASSERT_THAT(l1, ::testing::ElementsAre(1, 2, 3, 4, 5, 6, 7, 8, 9));
+}
+
 
 TEST(LIST, MOVE_ASSIGNMENT_SELF)
 {
@@ -250,6 +367,104 @@ TEST(LIST, MOVE_ASSIGNMENT_NON_EMPTY_LESS)
 TEST(LIST, MOVE_ASSIGNMENT_NON_EMPTY_GREATER)
 {
     LinkedList<Value<int>> l1{10, 20, 30, 40, 50, 60}, l2{1, 2, 3, 4, 5, 6, 7, 8, 9};
+
+    l1 = std::move(l2);
+
+    ASSERT_TRUE(l2.empty());
+    ASSERT_THAT(l2, ::testing::ElementsAre());
+
+    ASSERT_EQ(l1.size(), 9U);
+    ASSERT_THAT(l1, ::testing::ElementsAre(1, 2, 3, 4, 5, 6, 7, 8, 9));
+}
+
+TEST(LIST, MOVE_ASSIGNMENT_SELF_SPECIAL_ALLOCATOR1)
+{
+    LinkedList<Value<int>, NonRequiredMoveOnAssignmentAllocator1<int>> list{1, 2, 3, 4, 5, 6, 7, 8, 9};
+
+    list = std::move(list);
+
+    ASSERT_EQ(list.size(), 9U);
+    ASSERT_THAT(list, ::testing::ElementsAre(1, 2, 3, 4, 5, 6, 7, 8, 9));
+}
+
+TEST(LIST, MOVE_ASSIGNMENT_EMPTY_SPECIAL_ALLOCATOR1)
+{
+    LinkedList<Value<int>, NonRequiredMoveOnAssignmentAllocator1<int>> l1{1, 2, 3, 4, 5, 6, 7, 8, 9}, l2;
+
+    l1 = std::move(l2);
+
+    ASSERT_TRUE(l2.empty());
+    ASSERT_THAT(l2, ::testing::ElementsAre());
+
+    ASSERT_TRUE(l1.empty());
+    ASSERT_THAT(l1, ::testing::ElementsAre());
+}
+
+TEST(LIST, MOVE_ASSIGNMENT_NON_EMPTY_LESS_SPECIAL_ALLOCATOR1)
+{
+    LinkedList<Value<int>, NonRequiredMoveOnAssignmentAllocator1<int>> l1{1, 2, 3, 4, 5, 6, 7, 8, 9}, l2{10, 20, 30, 40, 50, 60};
+
+    l1 = std::move(l2);
+
+    ASSERT_TRUE(l2.empty());
+    ASSERT_THAT(l2, ::testing::ElementsAre());
+
+    ASSERT_EQ(l1.size(), 6U);
+    ASSERT_THAT(l1, ::testing::ElementsAre(10, 20, 30, 40, 50, 60));
+}
+
+TEST(LIST, MOVE_ASSIGNMENT_NON_EMPTY_GREATER_SPECIAL_ALLOCATOR1)
+{
+    LinkedList<Value<int>, NonRequiredMoveOnAssignmentAllocator1<int>> l1{10, 20, 30, 40, 50, 60}, l2{1, 2, 3, 4, 5, 6, 7, 8, 9};
+
+    l1 = std::move(l2);
+
+    ASSERT_TRUE(l2.empty());
+    ASSERT_THAT(l2, ::testing::ElementsAre());
+
+    ASSERT_EQ(l1.size(), 9U);
+    ASSERT_THAT(l1, ::testing::ElementsAre(1, 2, 3, 4, 5, 6, 7, 8, 9));
+}
+
+TEST(LIST, MOVE_ASSIGNMENT_SELF_SPECIAL_ALLOCATOR2)
+{
+    LinkedList<Value<int>, NonRequiredMoveOnAssignmentAllocator2<int>> list{1, 2, 3, 4, 5, 6, 7, 8, 9};
+
+    list = std::move(list);
+
+    ASSERT_EQ(list.size(), 9U);
+    ASSERT_THAT(list, ::testing::ElementsAre(1, 2, 3, 4, 5, 6, 7, 8, 9));
+}
+
+TEST(LIST, MOVE_ASSIGNMENT_EMPTY_SPECIAL_ALLOCATOR2)
+{
+    LinkedList<Value<int>, NonRequiredMoveOnAssignmentAllocator2<int>> l1{1, 2, 3, 4, 5, 6, 7, 8, 9}, l2;
+
+    l1 = std::move(l2);
+
+    ASSERT_TRUE(l2.empty());
+    ASSERT_THAT(l2, ::testing::ElementsAre());
+
+    ASSERT_TRUE(l1.empty());
+    ASSERT_THAT(l1, ::testing::ElementsAre());
+}
+
+TEST(LIST, MOVE_ASSIGNMENT_NON_EMPTY_LESS_SPECIAL_ALLOCATOR2)
+{
+    LinkedList<Value<int>, NonRequiredMoveOnAssignmentAllocator2<int>> l1{1, 2, 3, 4, 5, 6, 7, 8, 9}, l2{10, 20, 30, 40, 50, 60};
+
+    l1 = std::move(l2);
+
+    ASSERT_TRUE(l2.empty());
+    ASSERT_THAT(l2, ::testing::ElementsAre());
+
+    ASSERT_EQ(l1.size(), 6U);
+    ASSERT_THAT(l1, ::testing::ElementsAre(10, 20, 30, 40, 50, 60));
+}
+
+TEST(LIST, MOVE_ASSIGNMENT_NON_EMPTY_GREATER_SPECIAL_ALLOCATOR2)
+{
+    LinkedList<Value<int>, NonRequiredMoveOnAssignmentAllocator2<int>> l1{10, 20, 30, 40, 50, 60}, l2{1, 2, 3, 4, 5, 6, 7, 8, 9};
 
     l1 = std::move(l2);
 
@@ -503,7 +718,6 @@ TEST(LIST, SORT_GENERIC4)
 }
 
 
-
 TEST(LIST, SWAP_EMPTY)
 {
     LinkedList<Value<int>> l1, l2;
@@ -569,7 +783,6 @@ TEST(LIST, SWAP_GENERIC_EMPTY)
     ASSERT_THAT(l2, ::testing::ElementsAre(1, -2, 5, 65, 3, 42, 67, 35, 7, -10));
 }
 
-
 TEST(LIST, SWAP_GENERICS1)
 {
     LinkedList<Value<int>> l1{1, -2, 5, 65, 3, 42, 67, 35, 7, -10}, l2{298034, 78, 5490, 548};
@@ -586,6 +799,97 @@ TEST(LIST, SWAP_GENERICS1)
 TEST(LIST, SWAP_GENERICS2)
 {
     LinkedList<Value<int>> l1{1, -2, 5, 65, 3, 42, 67, 35, 7, -10}, l2{298034, 78, 5490, 548};
+
+    l2.swap(l1);
+
+    ASSERT_EQ(l1.size(), 4U);
+    ASSERT_THAT(l1, ::testing::ElementsAre(298034, 78, 5490, 548));
+
+    ASSERT_EQ(l2.size(), 10U);
+    ASSERT_THAT(l2, ::testing::ElementsAre(1, -2, 5, 65, 3, 42, 67, 35, 7, -10));
+}
+
+TEST(LIST, SWAP_EMPTY_SPECIAL_ALLOCATOR)
+{
+    LinkedList<Value<int>, RequiredSwapAllocator<int>> l1, l2;
+
+    l1.swap(l2);
+
+    ASSERT_TRUE(l1.empty());
+    ASSERT_THAT(l1, ::testing::ElementsAre());
+
+    ASSERT_TRUE(l2.empty());
+    ASSERT_THAT(l2, ::testing::ElementsAre());
+}
+
+TEST(LIST, SWAP_EMPTY_SINGLE_SPECIAL_ALLOCATOR)
+{
+    LinkedList<Value<int>, RequiredSwapAllocator<int>> l1, l2{-123};
+
+    l1.swap(l2);
+
+    ASSERT_EQ(l1.size(), 1U);
+    ASSERT_THAT(l1, ::testing::ElementsAre(-123));
+
+    ASSERT_TRUE(l2.empty());
+    ASSERT_THAT(l2, ::testing::ElementsAre());
+}
+
+TEST(LIST, SWAP_SINGLE_EMPTY_SPECIAL_ALLOCATOR)
+{
+    LinkedList<Value<int>, RequiredSwapAllocator<int>> l1{-123}, l2;
+
+    l1.swap(l2);
+
+    ASSERT_TRUE(l1.empty());
+    ASSERT_THAT(l1, ::testing::ElementsAre());
+
+    ASSERT_EQ(l2.size(), 1U);
+    ASSERT_THAT(l2, ::testing::ElementsAre(-123));
+}
+
+TEST(LIST, SWAP_EMPTY_GENERIC_SPECIAL_ALLOCATOR)
+{
+    LinkedList<Value<int>, RequiredSwapAllocator<int>> l1, l2{1, -2, 5, 65, 3, 42, 67, 35, 7, -10};
+
+    l1.swap(l2);
+
+    ASSERT_EQ(l1.size(), 10U);
+    ASSERT_THAT(l1, ::testing::ElementsAre(1, -2, 5, 65, 3, 42, 67, 35, 7, -10));
+
+    ASSERT_TRUE(l2.empty());
+    ASSERT_THAT(l2, ::testing::ElementsAre());
+}
+
+TEST(LIST, SWAP_GENERIC_EMPTY_SPECIAL_ALLOCATOR)
+{
+    LinkedList<Value<int>, RequiredSwapAllocator<int>> l1{1, -2, 5, 65, 3, 42, 67, 35, 7, -10}, l2;
+
+    l1.swap(l2);
+
+    ASSERT_TRUE(l1.empty());
+    ASSERT_THAT(l1, ::testing::ElementsAre());
+
+    ASSERT_EQ(l2.size(), 10U);
+    ASSERT_THAT(l2, ::testing::ElementsAre(1, -2, 5, 65, 3, 42, 67, 35, 7, -10));
+}
+
+TEST(LIST, SWAP_GENERICS1_SPECIAL_ALLOCATOR)
+{
+    LinkedList<Value<int>, RequiredSwapAllocator<int>> l1{1, -2, 5, 65, 3, 42, 67, 35, 7, -10}, l2{298034, 78, 5490, 548};
+
+    l1.swap(l2);
+
+    ASSERT_EQ(l1.size(), 4U);
+    ASSERT_THAT(l1, ::testing::ElementsAre(298034, 78, 5490, 548));
+
+    ASSERT_EQ(l2.size(), 10U);
+    ASSERT_THAT(l2, ::testing::ElementsAre(1, -2, 5, 65, 3, 42, 67, 35, 7, -10));
+}
+
+TEST(LIST, SWAP_GENERICS2_SPECIAL_ALLOCATOR)
+{
+    LinkedList<Value<int>, RequiredSwapAllocator<int>> l1{1, -2, 5, 65, 3, 42, 67, 35, 7, -10}, l2{298034, 78, 5490, 548};
 
     l2.swap(l1);
 
