@@ -1384,7 +1384,6 @@ TEST(LIST, SPLICE_POSITION_OTHER_SINGLE_TO_GENERIC_MIDDLE)
     ASSERT_THAT(l2, ::testing::ElementsAre());
 }
 
-//***
 TEST(LIST, SPLICE_POSITION_OTHER_GENERIC_TO_EMPTY_BEGIN)
 {
     LinkedList<Value<int>> l1, l2{1, 4, -5, 124312, 0, 0, 124};
@@ -1475,3 +1474,388 @@ TEST(LIST, SPLICE_POSITION_OTHER_GENERIC_TO_GENERIC_MIDDLE)
     ASSERT_TRUE(l2.empty());
     ASSERT_THAT(l2, ::testing::ElementsAre());
 }
+
+TEST(LIST, SPLICE_POSITION_OTHER_POSITION_SINGLE_TO_EMPTY_BEGIN)
+{
+    LinkedList<Value<int>> l1, l2{1};
+
+    l1.splice(l1.cbegin(), l2, l2.cbegin());
+
+    ASSERT_EQ(l1.size(), 1U);
+    ASSERT_THAT(l1, ::testing::ElementsAre(1));
+
+    ASSERT_TRUE(l2.empty());
+    ASSERT_THAT(l2, ::testing::ElementsAre());
+}
+
+TEST(LIST, SPLICE_POSITION_OTHER_POSITION_SINGLE_TO_EMPTY_END)
+{
+    LinkedList<Value<int>> l1, l2{1};
+
+    l1.splice(l1.cend(), l2, l2.cbegin());
+
+    ASSERT_EQ(l1.size(), 1U);
+    ASSERT_THAT(l1, ::testing::ElementsAre(1));
+
+    ASSERT_TRUE(l2.empty());
+    ASSERT_THAT(l2, ::testing::ElementsAre());
+}
+
+TEST(LIST, SPLICE_POSITION_OTHER_POSITION_SINGLE_TO_SINGLE_BEGIN)
+{
+    LinkedList<Value<int>> l1{33}, l2{1};
+
+    l1.splice(l1.cbegin(), l2, l2.cbegin());
+
+    ASSERT_EQ(l1.size(), 2U);
+    ASSERT_THAT(l1, ::testing::ElementsAre(1, 33));
+
+    ASSERT_TRUE(l2.empty());
+    ASSERT_THAT(l2, ::testing::ElementsAre());
+}
+
+TEST(LIST, SPLICE_POSITION_OTHER_POSITION_SINGLE_TO_SINGLE_END)
+{
+    LinkedList<Value<int>> l1{33}, l2{1};
+
+    l1.splice(l1.cend(), l2, l2.cbegin());
+
+    ASSERT_EQ(l1.size(), 2U);
+    ASSERT_THAT(l1, ::testing::ElementsAre(33, 1));
+
+    ASSERT_TRUE(l2.empty());
+    ASSERT_THAT(l2, ::testing::ElementsAre());
+}
+
+TEST(LIST, SPLICE_POSITION_OTHER_POSITION_SINGLE_TO_GENERIC_BEGIN)
+{
+    LinkedList<Value<int>> l1{33, 44, 55, 66}, l2{1};
+
+    l1.splice(l1.cbegin(), l2, l2.cbegin());
+
+    ASSERT_EQ(l1.size(), 5U);
+    ASSERT_THAT(l1, ::testing::ElementsAre(1, 33, 44, 55, 66));
+
+    ASSERT_TRUE(l2.empty());
+    ASSERT_THAT(l2, ::testing::ElementsAre());
+}
+
+TEST(LIST, SPLICE_POSITION_OTHER_POSITION_SINGLE_TO_GENERIC_END)
+{
+    LinkedList<Value<int>> l1{33, 44, 55, 66}, l2{1};
+
+    l1.splice(l1.cend(), l2, l2.cbegin());
+
+    ASSERT_EQ(l1.size(), 5U);
+    ASSERT_THAT(l1, ::testing::ElementsAre(33, 44, 55, 66, 1));
+
+    ASSERT_TRUE(l2.empty());
+    ASSERT_THAT(l2, ::testing::ElementsAre());
+}
+
+TEST(LIST, SPLICE_POSITION_OTHER_POSITION_SINGLE_TO_GENERIC_MIDDLE)
+{
+    LinkedList<Value<int>> l1{33, 44, 55, 66}, l2{1};
+
+    l1.splice(++++l1.cbegin(), l2, l2.cbegin());
+
+    ASSERT_EQ(l1.size(), 5U);
+    ASSERT_THAT(l1, ::testing::ElementsAre(33, 44, 1, 55, 66));
+
+    ASSERT_TRUE(l2.empty());
+    ASSERT_THAT(l2, ::testing::ElementsAre());
+}
+
+TEST(LIST, SPLICE_POSITION_OTHER_POSITION_GENERIC_BEGIN_TO_EMPTY_BEGIN)
+{
+    LinkedList<Value<int>> l1, l2{33, 44, 55, 66};
+
+    l1.splice(l1.cbegin(), l2, l2.cbegin());
+
+    ASSERT_EQ(l1.size(), 1U);
+    ASSERT_THAT(l1, ::testing::ElementsAre(33));
+
+    ASSERT_EQ(l2.size(), 3U);
+    ASSERT_THAT(l2, ::testing::ElementsAre(44, 55, 66));
+}
+
+TEST(LIST, SPLICE_POSITION_OTHER_POSITION_GENERIC_LAST_TO_EMPTY_BEGIN)
+{
+    LinkedList<Value<int>> l1, l2{33, 44, 55, 66};
+
+    l1.splice(l1.cbegin(), l2, --l2.cend());
+
+    ASSERT_EQ(l1.size(), 1U);
+    ASSERT_THAT(l1, ::testing::ElementsAre(66));
+
+    ASSERT_EQ(l2.size(), 3U);
+    ASSERT_THAT(l2, ::testing::ElementsAre(33, 44, 55));
+}
+
+TEST(LIST, SPLICE_POSITION_OTHER_POSITION_GENERIC_MIDDLE_TO_EMPTY_BEGIN)
+{
+    LinkedList<Value<int>> l1, l2{33, 44, 55, 66};
+
+    l1.splice(l1.cbegin(), l2, ++++l2.cbegin());
+
+    ASSERT_EQ(l1.size(), 1U);
+    ASSERT_THAT(l1, ::testing::ElementsAre(55));
+
+    ASSERT_EQ(l2.size(), 3U);
+    ASSERT_THAT(l2, ::testing::ElementsAre(33, 44, 66));
+}
+
+TEST(LIST, SPLICE_POSITION_OTHER_POSITION_GENERIC_BEGIN_TO_EMPTY_END)
+{
+    LinkedList<Value<int>> l1, l2{33, 44, 55, 66};
+
+    l1.splice(l1.cend(), l2, l2.cbegin());
+
+    ASSERT_EQ(l1.size(), 1U);
+    ASSERT_THAT(l1, ::testing::ElementsAre(33));
+
+    ASSERT_EQ(l2.size(), 3U);
+    ASSERT_THAT(l2, ::testing::ElementsAre(44, 55, 66));
+}
+
+TEST(LIST, SPLICE_POSITION_OTHER_POSITION_GENERIC_LAST_TO_EMPTY_END)
+{
+    LinkedList<Value<int>> l1, l2{33, 44, 55, 66};
+
+    l1.splice(l1.cend(), l2, --l2.cend());
+
+    ASSERT_EQ(l1.size(), 1U);
+    ASSERT_THAT(l1, ::testing::ElementsAre(66));
+
+    ASSERT_EQ(l2.size(), 3U);
+    ASSERT_THAT(l2, ::testing::ElementsAre(33, 44, 55));
+}
+
+TEST(LIST, SPLICE_POSITION_OTHER_POSITION_GENERIC_MIDDLE_TO_EMPTY_END)
+{
+    LinkedList<Value<int>> l1, l2{33, 44, 55, 66};
+
+    l1.splice(l1.cend(), l2, ++++l2.cbegin());
+
+    ASSERT_EQ(l1.size(), 1U);
+    ASSERT_THAT(l1, ::testing::ElementsAre(55));
+
+    ASSERT_EQ(l2.size(), 3U);
+    ASSERT_THAT(l2, ::testing::ElementsAre(33, 44, 66));
+}
+
+TEST(LIST, SPLICE_POSITION_OTHER_POSITION_GENERIC_BEGIN_TO_SINGLE_BEGIN)
+{
+    LinkedList<Value<int>> l1{1}, l2{33, 44, 55, 66};
+
+    l1.splice(l1.cbegin(), l2, l2.cbegin());
+
+    ASSERT_EQ(l1.size(), 2U);
+    ASSERT_THAT(l1, ::testing::ElementsAre(33, 1));
+
+    ASSERT_EQ(l2.size(), 3U);
+    ASSERT_THAT(l2, ::testing::ElementsAre(44, 55, 66));
+}
+
+TEST(LIST, SPLICE_POSITION_OTHER_POSITION_GENERIC_LAST_TO_SINGLE_BEGIN)
+{
+    LinkedList<Value<int>> l1{1}, l2{33, 44, 55, 66};
+
+    l1.splice(l1.cbegin(), l2, --l2.cend());
+
+    ASSERT_EQ(l1.size(), 2U);
+    ASSERT_THAT(l1, ::testing::ElementsAre(66, 1));
+
+    ASSERT_EQ(l2.size(), 3U);
+    ASSERT_THAT(l2, ::testing::ElementsAre(33, 44, 55));
+}
+
+TEST(LIST, SPLICE_POSITION_OTHER_POSITION_GENERIC_MIDDLE_TO_SINGLE_BEGIN)
+{
+    LinkedList<Value<int>> l1{1}, l2{33, 44, 55, 66};
+
+    l1.splice(l1.cbegin(), l2, ++++l2.cbegin());
+
+    ASSERT_EQ(l1.size(), 2U);
+    ASSERT_THAT(l1, ::testing::ElementsAre(55, 1));
+
+    ASSERT_EQ(l2.size(), 3U);
+    ASSERT_THAT(l2, ::testing::ElementsAre(33, 44, 66));
+}
+
+TEST(LIST, SPLICE_POSITION_OTHER_POSITION_GENERIC_BEGIN_TO_SINGLE_END)
+{
+    LinkedList<Value<int>> l1{1}, l2{33, 44, 55, 66};
+
+    l1.splice(l1.cend(), l2, l2.cbegin());
+
+    ASSERT_EQ(l1.size(), 2U);
+    ASSERT_THAT(l1, ::testing::ElementsAre(1, 33));
+
+    ASSERT_EQ(l2.size(), 3U);
+    ASSERT_THAT(l2, ::testing::ElementsAre(44, 55, 66));
+}
+
+TEST(LIST, SPLICE_POSITION_OTHER_POSITION_GENERIC_LAST_TO_SINGLE_END)
+{
+    LinkedList<Value<int>> l1{1}, l2{33, 44, 55, 66};
+
+    l1.splice(l1.cend(), l2, --l2.cend());
+
+    ASSERT_EQ(l1.size(), 2U);
+    ASSERT_THAT(l1, ::testing::ElementsAre(1, 66));
+
+    ASSERT_EQ(l2.size(), 3U);
+    ASSERT_THAT(l2, ::testing::ElementsAre(33, 44, 55));
+}
+
+TEST(LIST, SPLICE_POSITION_OTHER_POSITION_GENERIC_MIDDLE_TO_SINGLE_END)
+{
+    LinkedList<Value<int>> l1{1}, l2{33, 44, 55, 66};
+
+    l1.splice(l1.cend(), l2, ++++l2.cbegin());
+
+    ASSERT_EQ(l1.size(), 2U);
+    ASSERT_THAT(l1, ::testing::ElementsAre(1, 55));
+
+    ASSERT_EQ(l2.size(), 3U);
+    ASSERT_THAT(l2, ::testing::ElementsAre(33, 44, 66));
+}
+
+TEST(LIST, SPLICE_POSITION_OTHER_POSITION_GENERIC_BEGIN_TO_GENERIC_BEGIN)
+{
+    LinkedList<Value<int>> l1{1, -1, 2, -2}, l2{33, 44, 55, 66};
+
+    l1.splice(l1.cbegin(), l2, l2.cbegin());
+
+    ASSERT_EQ(l1.size(), 5U);
+    ASSERT_THAT(l1, ::testing::ElementsAre(33, 1, -1, 2, -2));
+
+    ASSERT_EQ(l2.size(), 3U);
+    ASSERT_THAT(l2, ::testing::ElementsAre(44, 55, 66));
+}
+
+TEST(LIST, SPLICE_POSITION_OTHER_POSITION_GENERIC_LAST_TO_GENERIC_BEGIN)
+{
+    LinkedList<Value<int>> l1{1, -1, 2, -2}, l2{33, 44, 55, 66};
+
+    l1.splice(l1.cbegin(), l2, --l2.cend());
+
+    ASSERT_EQ(l1.size(), 5U);
+    ASSERT_THAT(l1, ::testing::ElementsAre(66, 1, -1, 2, -2));
+
+    ASSERT_EQ(l2.size(), 3U);
+    ASSERT_THAT(l2, ::testing::ElementsAre(33, 44, 55));
+}
+
+TEST(LIST, SPLICE_POSITION_OTHER_POSITION_GENERIC_MIDDLE_TO_GENERIC_BEGIN)
+{
+    LinkedList<Value<int>> l1{1, -1, 2, -2}, l2{33, 44, 55, 66};
+
+    l1.splice(l1.cbegin(), l2, ++++l2.cbegin());
+
+    ASSERT_EQ(l1.size(), 5U);
+    ASSERT_THAT(l1, ::testing::ElementsAre(55, 1, -1, 2, -2));
+
+    ASSERT_EQ(l2.size(), 3U);
+    ASSERT_THAT(l2, ::testing::ElementsAre(33, 44, 66));
+}
+
+TEST(LIST, SPLICE_POSITION_OTHER_POSITION_GENERIC_BEGIN_TO_GENERIC_END)
+{
+    LinkedList<Value<int>> l1{1, -1, 2, -2}, l2{33, 44, 55, 66};
+
+    l1.splice(l1.cend(), l2, l2.cbegin());
+
+    ASSERT_EQ(l1.size(), 5U);
+    ASSERT_THAT(l1, ::testing::ElementsAre(1, -1, 2, -2, 33));
+
+    ASSERT_EQ(l2.size(), 3U);
+    ASSERT_THAT(l2, ::testing::ElementsAre(44, 55, 66));
+}
+
+TEST(LIST, SPLICE_POSITION_OTHER_POSITION_GENERIC_LAST_TO_GENERIC_END)
+{
+    LinkedList<Value<int>> l1{1, -1, 2, -2}, l2{33, 44, 55, 66};
+
+    l1.splice(l1.cend(), l2, --l2.cend());
+
+    ASSERT_EQ(l1.size(), 5U);
+    ASSERT_THAT(l1, ::testing::ElementsAre(1, -1, 2, -2, 66));
+
+    ASSERT_EQ(l2.size(), 3U);
+    ASSERT_THAT(l2, ::testing::ElementsAre(33, 44, 55));
+}
+
+TEST(LIST, SPLICE_POSITION_OTHER_POSITION_GENERIC_MIDDLE_TO_GENERIC_END)
+{
+    LinkedList<Value<int>> l1{1, -1, 2, -2}, l2{33, 44, 55, 66};
+
+    l1.splice(l1.cend(), l2, ++++l2.cbegin());
+
+    ASSERT_EQ(l1.size(), 5U);
+    ASSERT_THAT(l1, ::testing::ElementsAre(1, -1, 2, -2, 55));
+
+    ASSERT_EQ(l2.size(), 3U);
+    ASSERT_THAT(l2, ::testing::ElementsAre(33, 44, 66));
+}
+
+TEST(LIST, SPLICE_POSITION_OTHER_POSITION_GENERIC_BEGIN_TO_GENERIC_MIDDLE)
+{
+    LinkedList<Value<int>> l1{1, -1, 2, -2}, l2{33, 44, 55, 66};
+
+    l1.splice(++l1.cbegin(), l2, l2.cbegin());
+
+    ASSERT_EQ(l1.size(), 5U);
+    ASSERT_THAT(l1, ::testing::ElementsAre(1, 33, -1, 2, -2));
+
+    ASSERT_EQ(l2.size(), 3U);
+    ASSERT_THAT(l2, ::testing::ElementsAre(44, 55, 66));
+}
+
+TEST(LIST, SPLICE_POSITION_OTHER_POSITION_GENERIC_LAST_TO_GENERIC_MIDDLE)
+{
+    LinkedList<Value<int>> l1{1, -1, 2, -2}, l2{33, 44, 55, 66};
+
+    l1.splice(++l1.cbegin(), l2, --l2.cend());
+
+    ASSERT_EQ(l1.size(), 5U);
+    ASSERT_THAT(l1, ::testing::ElementsAre(1, 66, -1, 2, -2));
+
+    ASSERT_EQ(l2.size(), 3U);
+    ASSERT_THAT(l2, ::testing::ElementsAre(33, 44, 55));
+}
+
+TEST(LIST, SPLICE_POSITION_OTHER_POSITION_GENERIC_MIDDLE_TO_GENERIC_MIDDLE)
+{
+    LinkedList<Value<int>> l1{1, -1, 2, -2}, l2{33, 44, 55, 66};
+
+    l1.splice(++l1.cbegin(), l2, ++++l2.cbegin());
+
+    ASSERT_EQ(l1.size(), 5U);
+    ASSERT_THAT(l1, ::testing::ElementsAre(1, 55, -1, 2, -2));
+
+    ASSERT_EQ(l2.size(), 3U);
+    ASSERT_THAT(l2, ::testing::ElementsAre(33, 44, 66));
+}
+
+TEST(LIST, SPLICE_POSITION_THIS_SINGLE)
+{
+    LinkedList<Value<int>> list{87};
+
+    list.splice(list.cend(), list, list.cbegin());
+
+    ASSERT_EQ(list.size(), 1U);
+    ASSERT_THAT(list, ::testing::ElementsAre(87));
+}
+
+TEST(LIST, SPLICE_POSITION_THIS_ADJACENTS)
+{
+    LinkedList<Value<int>> list{55, 1323};
+
+    list.splice(list.cbegin(), list, --list.cend());
+
+    ASSERT_EQ(list.size(), 2U);
+    ASSERT_THAT(list, ::testing::ElementsAre(1323, 55));
+}
+
