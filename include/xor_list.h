@@ -478,31 +478,31 @@ public:
         assign(il.begin(), il.end());
     }
 
-    // WARNING! Iterators equal to position will become invalid
+
     void splice(const_iterator position, LinkedList &x) noexcept
     {
-        if ((this != ::std::addressof(x)) && (!x.empty()))
-        {
-            const auto distance = x.size();
-            const auto range = x.cutSequenceFromThis(x.cbegin(), x.cend(), distance).cutted;
-
-            (void)insertSequenceToThisBefore(position, range.first, range.second, distance);
-        }
-    }
-
-    // WARNING! Iterators equal to position will become invalid
-    void splice(const_iterator position, LinkedList &x, const_iterator i) noexcept
-    {
-        if ((this == ::std::addressof(x)) && (position == i))
+        if ((this == ::std::addressof(x)) || (x.empty()))
         {
             return;
         }
 
-        (void)x.cutSequenceFromThis(i, ::std::next(i), 1);
-        (void)insertNodeToThisBefore(position, static_cast<NodeWithValue*>(i.current));
+        const auto distance = x.size();
+        const auto range = x.cutSequenceFromThis(x.cbegin(), x.cend(), distance).cutted;
+
+        (void)insertSequenceToThisBefore(position, range.first, range.second, distance);
     }
 
-    // WARNING! Iterators equal to position will become invalid
+    void splice(const_iterator position, LinkedList &x, const_iterator i) noexcept
+    {
+        if ((this == ::std::addressof(x)) && ((position == i) || (position.prev == i.current)))
+        {
+            return;
+        }
+
+        const auto range = x.cutSequenceFromThis(i, ::std::next(i), 1).cutted;
+        (void)insertNodeToThisBefore(position, static_cast<NodeWithValue*>(range.first.current));
+    }
+
     void splice(const_iterator position, LinkedList &x, const_iterator first, const_iterator last) noexcept
     {
         if (first == last)
@@ -512,7 +512,7 @@ public:
 
         const size_type distance = (this == ::std::addressof(x)) ? size() : ::std::distance(first, last);
 
-        (void)x.cutSequenceFromThis(first, last, distance);
+        ::std::tie(first, last) = x.cutSequenceFromThis(first, last, distance).cutted;
         (void)insertSequenceToThisBefore(position, first, last, distance);
     }
 
