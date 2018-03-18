@@ -1859,3 +1859,39 @@ TEST(LIST, SPLICE_POSITION_THIS_ADJACENTS)
     ASSERT_THAT(list, ::testing::ElementsAre(1323, 55));
 }
 
+TEST(LIST, SPLICE_RANGE_EMPTY)
+{
+    LinkedList<Value<int>> l1{1, 2, 3, 4, 5}, l2;
+
+    l1.splice(l1.cbegin(), l2, l2.cbegin(), l2.cend());
+
+    ASSERT_EQ(l1.size(), 5U);
+    ASSERT_THAT(l1, ::testing::ElementsAre(1, 2, 3, 4, 5));
+
+    ASSERT_TRUE(l2.empty());
+    ASSERT_THAT(l2, ::testing::ElementsAre());
+}
+
+TEST(LIST, SPLICE_RANGE_GENERIC)
+{
+    LinkedList<Value<int>> l1{1, 2, 3, 4, 5}, l2{10, 20, 30};
+
+    l1.splice(++++l1.cbegin(), l2, l2.cbegin(), l2.cend());
+
+    ASSERT_EQ(l1.size(), 8U);
+    ASSERT_THAT(l1, ::testing::ElementsAre(1, 2, 10, 20, 30, 3, 4, 5));
+
+    ASSERT_TRUE(l2.empty());
+    ASSERT_THAT(l2, ::testing::ElementsAre());
+}
+
+TEST(LIST, SPLICE_RANGE_THIS_GENERIC)
+{
+    LinkedList<Value<int>> list{1, 2, 3, 4, 5};
+
+    list.splice(list.cbegin(), list, ++list.cbegin(), list.cend());
+
+    ASSERT_EQ(list.size(), 5U);
+    ASSERT_THAT(list, ::testing::ElementsAre(2, 3, 4, 5, 1));
+}
+
