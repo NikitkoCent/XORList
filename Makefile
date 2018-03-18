@@ -12,5 +12,8 @@ invoke_cmake: CMakeLists.txt
 collect_coverage: invoke_make
 	$(MAKE) -C build/ collect_coverage
 
+sort_performance: invoke_make
+	build/sort_performance
+
 clean:
 	rm -rf build/*

@@ -9,6 +9,7 @@ Variable CMAKE_ARGS is for passing arguments to cmake invocation
 * Make **DEBUG** build and run tests: `make CMAKE_ARGS="-DCMAKE_BUILD_TYPE=Debug"`  
 * Make **RELEASE** build and run tests: `make CMAKE_ARGS="-DCMAKE_BUILD_TYPE=Release"`  
 * Testing coverage (**DEBUG** build only): `make CMAKE_ARGS="-DCMAKE_BUILD_TYPE=Debug" collect_coverage`  
+* Sorting performance test : `make CMAKE_ARGS="-DCMAKE_BUILD_TYPE=Release" sort_performance`
 
 ### Windows:
 Use [cmake](https://cmake.org/download/) for generating MSVS solution / smth else : `cd build && cmake.exe ../`
