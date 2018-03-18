@@ -61,7 +61,6 @@ add_test(NAME do_unittests COMMAND unittesting)
 
 
 add_executable(sort_performance tests/performance_list_sort.cpp)
-add_test(NAME measure_sort_performance COMMAND sort_performance)
 
 # ================================= TEST COVERAGE =======================================
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")

@@ -293,8 +293,8 @@ public:
             return;
         }
 
-        //::std::array<NullableRange, 3> sortedRanges; // for tests only!
-        ::std::array<NullableRange, 32> sortedRanges;
+        ::std::array<NullableRange, 3> sortedRanges; // for tests only!
+        //::std::array<NullableRange, 32> sortedRanges; // for release
 
         while (!empty())
         {
