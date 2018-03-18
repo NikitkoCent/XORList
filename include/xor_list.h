@@ -293,15 +293,23 @@ public:
             return;
         }
 
-        ::std::array<NullableRange, 3> sortedRanges;
-        ::std::uint32_t maxUnfilled = 0;
+        ::std::array<NullableRange, 3> sortedRanges; // for tests only!
+        //::std::array<NullableRange, 32> sortedRanges; // for release
 
         while (!empty())
         {
             Range newRange = cutSequenceFromThis(cbegin(), ++cbegin(), 1).cutted;
-            for (::std::uint32_t i = 0; i < maxUnfilled; ++i)
+
+            ::std::uint32_t i = 0;
+            for ( ; i < sortedRanges.size(); ++i)
             {
-                if (!sortedRanges[i].isNull)
+                if (sortedRanges[i].isNull)
+                {
+                    sortedRanges[i].range = newRange;
+                    sortedRanges[i].isNull = false;
+                    break;
+                }
+                else
                 {
                     newRange = mergeSequences(sortedRanges[i].range.first, sortedRanges[i].range.second,
                                               newRange.first, newRange.second, isLess);
@@ -309,20 +317,15 @@ public:
                 }
             }
 
-            if (maxUnfilled == sortedRanges.size())
+            if (i == sortedRanges.size())
             {
                 sortedRanges.back().range = newRange;
                 sortedRanges.back().isNull = false;
             }
-            else
-            {
-                sortedRanges[maxUnfilled].range = newRange;
-                sortedRanges[maxUnfilled++].isNull = false;
-            }
         }
 
         NullableRange result;
-        for (::std::uint32_t i = 0; i < maxUnfilled; ++i)
+        for (::std::uint32_t i = 0; i < sortedRanges.size(); ++i)
         {
             if (!sortedRanges[i].isNull)
             {
@@ -345,7 +348,7 @@ public:
     // strong exception-safe guarantee
     iterator insert(const_iterator position, const_reference val)
     {
-        //emplaceBefore noexcept!
+        //insertNodeToThisBefore noexcept!
         return insertNodeToThisBefore(position, createNode(val)).first;
     }
 
@@ -431,15 +434,15 @@ public:
                                                 typename ::std::iterator_traits<InputIterator>::iterator_category>::value>::type
     assign(InputIterator first, InputIterator last)
     {
-        for (T &element : *this)
+        for (auto iter = begin(); iter != end(); ++iter, ++first)
         {
             if (first == last)
             {
+                (void)erase(iter, end());
                 return;
             }
 
-            element = *first;
-            ++first;
+            *iter = *first;
         }
 
         for ( ; first != last; ++first)
@@ -460,6 +463,14 @@ public:
         {
             erase(iter, end());
         }
+        else
+        {
+            while (count > 0)
+            {
+                emplace_back(val);
+                --count;
+            }
+        }
     }
 
     void assign(::std::initializer_list<T> il)
@@ -467,31 +478,31 @@ public:
         assign(il.begin(), il.end());
     }
 
-    // WARNING! Iterators equal to position will become invalid
+
     void splice(const_iterator position, LinkedList &x) noexcept
     {
-        if ((this != ::std::addressof(x)) && (!x.empty()))
-        {
-            const auto distance = x.size();
-            const auto range = x.cutSequenceFromThis(x.cbegin(), x.cend(), distance).cutted;
-
-            (void)insertSequenceToThisBefore(position, range.first, range.second, distance);
-        }
-    }
-
-    // WARNING! Iterators equal to position will become invalid
-    void splice(const_iterator position, LinkedList &x, const_iterator i) noexcept
-    {
-        if ((this == ::std::addressof(x)) && (position == i))
+        if ((this == ::std::addressof(x)) || (x.empty()))
         {
             return;
         }
 
-        (void)x.cutSequenceFromThis(i, ::std::next(i), 1);
-        (void)insertNodeToThisBefore(position, static_cast<NodeWithValue*>(i.current));
+        const auto distance = x.size();
+        const auto range = x.cutSequenceFromThis(x.cbegin(), x.cend(), distance).cutted;
+
+        (void)insertSequenceToThisBefore(position, range.first, range.second, distance);
     }
 
-    // WARNING! Iterators equal to position will become invalid
+    void splice(const_iterator position, LinkedList &x, const_iterator i) noexcept
+    {
+        if ((this == ::std::addressof(x)) && ((position == i) || (position.prev == i.current)))
+        {
+            return;
+        }
+
+        const auto range = x.cutSequenceFromThis(i, ::std::next(i), 1).cutted;
+        (void)insertNodeToThisBefore(position, static_cast<NodeWithValue*>(range.first.current));
+    }
+
     void splice(const_iterator position, LinkedList &x, const_iterator first, const_iterator last) noexcept
     {
         if (first == last)
@@ -501,7 +512,7 @@ public:
 
         const size_type distance = (this == ::std::addressof(x)) ? size() : ::std::distance(first, last);
 
-        (void)x.cutSequenceFromThis(first, last, distance);
+        ::std::tie(first, last) = x.cutSequenceFromThis(first, last, distance).cutted;
         (void)insertSequenceToThisBefore(position, first, last, distance);
     }
 
@@ -895,30 +906,28 @@ private:
 
     void swapWithoutAllocators(LinkedList &other)
     {
-        const auto thisBegin = cbegin();
-        const auto thisEnd = cend();
         const auto thisDistance = size();
-
-        const auto otherBegin = other.cbegin();
-        const auto otherEnd = other.cend();
         const auto otherDistance = other.size();
 
         if (!empty())
         {
-            cutSequence(thisBegin, thisEnd, thisDistance);
+            auto thisCutResult = cutSequenceFromThis(cbegin(), cend(), thisDistance);
 
             if (!other.empty())
             {
-                other.cutSequence(otherBegin, otherEnd, otherDistance);
-                (void)emplaceBefore(cbegin(), otherBegin, otherEnd, otherDistance);
+                auto otherCutResult = other.cutSequenceFromThis(other.cbegin(), other.cend(), otherDistance);
+                (void)insertSequenceToThisBefore(cbegin(), otherCutResult.cutted.first, otherCutResult.cutted.second,
+                                                 otherDistance);
             }
 
-            (void)other.emplaceBefore(other.cbegin(), thisBegin, thisEnd, thisDistance);
+            (void)other.insertSequenceToThisBefore(other.cbegin(), thisCutResult.cutted.first,
+                                                   thisCutResult.cutted.second, thisDistance);
         }
         else if (!other.empty())
         {
-            other.cutSequence(otherBegin, otherEnd, otherDistance);
-            (void)emplaceBefore(cbegin(), otherBegin, otherEnd, otherDistance);
+            auto otherCutResult = other.cutSequenceFromThis(other.cbegin(), other.cend(), otherDistance);
+            (void)insertSequenceToThisBefore(cbegin(), otherCutResult.cutted.first, otherCutResult.cutted.second,
+                                             otherDistance);
         }
     }
 
