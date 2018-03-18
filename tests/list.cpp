@@ -3,6 +3,8 @@
 #include <gmock/gmock.h>
 #include <memory>
 #include <type_traits>
+#include <stdexcept>
+#include <utility>
 
 
 template<typename T>
@@ -51,6 +53,51 @@ struct NonMovableValue : NonCopyableValue<T>
     NonMovableValue(NonMovableValue &&) = delete;
     NonMovableValue& operator=(NonMovableValue&&) = delete;
 };
+
+
+template<typename T>
+struct ThrowsOnConstructValue : Value<T>
+{
+    template<typename... Args>
+    ThrowsOnConstructValue(Args&&... args)
+        : Value<T>(std::forward<Args>(args)...)
+    {
+        throw std::runtime_error("YEEEEAAH ROOOCCKKKKKKKKKKKKKKK");
+    }
+
+    ThrowsOnConstructValue(const Value<T> &value)
+        : Value<T>(value)
+    {}
+
+
+    ThrowsOnConstructValue(const ThrowsOnConstructValue &) = default;
+    ThrowsOnConstructValue(ThrowsOnConstructValue &&) = default;
+};
+
+
+template<typename T>
+struct ThrowsOnCopyConstructValueCounted : Value<T>
+{
+    template<typename... Args>
+    ThrowsOnCopyConstructValueCounted(Args&&... args)
+        : Value<T>(std::forward<Args>(args)...)
+    {
+    }
+
+    ThrowsOnCopyConstructValueCounted(const ThrowsOnCopyConstructValueCounted &src)
+        : Value<T>(src)
+    {
+        if (--counter == 0)
+        {
+            throw std::runtime_error("YEEEEAAH ROOOCCKKKKKKKKKKKKKKK");
+        }
+    }
+
+    static int counter;
+};
+
+template<typename T>
+int ThrowsOnCopyConstructValueCounted<T>::counter = -1;
 
 
 template<typename T>
@@ -117,9 +164,8 @@ public:
     using std::allocator<T>::allocator;
 
 
-    bool operator==(const NonRequiredMoveOnAssignmentAllocator2 &right) const noexcept
+    bool operator==(const NonRequiredMoveOnAssignmentAllocator2 &) const noexcept
     {
-        (void)right;
         return false;
     }
 };
@@ -1041,6 +1087,28 @@ TEST(LIST, EMPLACE2)
 
     ASSERT_EQ(list.size(), 4U);
     ASSERT_THAT(list, ::testing::ElementsAre(2, 1, 0, -1));
+}
+
+TEST(LIST, EMPLACE_EXCEPTION1)
+{
+    LinkedList<ThrowsOnConstructValue<int>> list;
+    const Value<int> value(-1);
+
+    list.emplace_back(value);
+    ASSERT_ANY_THROW(list.emplace_front(0));
+
+    ASSERT_EQ(list.size(), 1U);
+    ASSERT_THAT(list, ::testing::ElementsAre(value));
+}
+
+TEST(LIST, EMPLACE_EXCEPTION2)
+{
+    LinkedList<ThrowsOnConstructValue<int>> list;
+
+    ASSERT_ANY_THROW(list.emplace_back(-1));
+
+    ASSERT_TRUE(list.empty());
+    ASSERT_THAT(list, ::testing::ElementsAre());
 }
 
 
@@ -2199,3 +2267,29 @@ TEST(LIST, SPLICE_RANGE_THIS_GENERIC)
     ASSERT_THAT(list, ::testing::ElementsAre(2, 3, 4, 5, 1));
 }
 
+
+TEST(LIST, INSERT_RANGE_EXCEPTION1)
+{
+    LinkedList<ThrowsOnCopyConstructValueCounted<int>> list;
+    ThrowsOnCopyConstructValueCounted<int> range[5] = {5, 4, 1, 2, 5};
+
+    ThrowsOnCopyConstructValueCounted<int>::counter = 1;
+
+    ASSERT_ANY_THROW(list.insert(list.cbegin(), &range[0], &range[5]));
+
+    ASSERT_TRUE(list.empty());
+    ASSERT_THAT(list, ::testing::ElementsAre());
+}
+
+TEST(LIST, INSERT_RANGE_EXCEPTION2)
+{
+    LinkedList<ThrowsOnCopyConstructValueCounted<int>> list{100, 200, 300, 400};
+    ThrowsOnCopyConstructValueCounted<int> range[5] = {5, 4, 1, 2, 5};
+
+    ThrowsOnCopyConstructValueCounted<int>::counter = 2;
+
+    ASSERT_ANY_THROW(list.insert(++++list.cbegin(), &range[0], &range[5]));
+
+    ASSERT_EQ(list.size(), 4U);
+    ASSERT_THAT(list, ::testing::ElementsAre(100, 200, 300, 400));
+}
