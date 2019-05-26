@@ -1,0 +1,6 @@
+[submodule "third-party/cmake-modules"]
+	path = third-party/cmake-modules
+	url = https://github.com/NikitkoCent/cmake-modules
+[submodule "third-party/googletest"]
+	path = third-party/googletest
+	url = https://github.com/google/googletest
