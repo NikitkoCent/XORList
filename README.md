@@ -24,7 +24,7 @@ void printRange(Range &&range)
 {
     for (auto &&val : range)
     {
-        std::cout << val << ' ' <<;
+        std::cout << val << ' ';
     }
 }
 
