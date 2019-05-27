@@ -55,7 +55,7 @@ int main()
 
         std::cout << "Analyzed size : " << size << std::endl;
         std::cout << "std::list : " << measureSorting<std::list<int>>(list).count() << " sec." << std::endl;
-        std::cout << "::LinkedList : " << measureSorting<LinkedList<int>>(list).count() << " sec." << std::endl;
+        std::cout << "::xor_list : " << measureSorting<xor_list<int>>(list).count() << " sec." << std::endl;
 
         std::cout << std::endl;
     }

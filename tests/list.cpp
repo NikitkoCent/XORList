@@ -174,7 +174,7 @@ public:
 
 TEST(LIST, CONSTRUCTOR_DEFAULT)
 {
-    LinkedList<NonMovableValue<int>> list;
+    xor_list<NonMovableValue<int>> list;
 
     ASSERT_TRUE(list.empty());
     ASSERT_THAT(list, ::testing::ElementsAre());
@@ -183,7 +183,7 @@ TEST(LIST, CONSTRUCTOR_DEFAULT)
 
 TEST(LIST, CONSTRUCTOR_ALLOCATOR)
 {
-    LinkedList<NonMovableValue<int>> list(std::allocator<NonMovableValue<int>>{});
+    xor_list<NonMovableValue<int>> list(std::allocator<NonMovableValue<int>>{});
 
     ASSERT_TRUE(list.empty());
     ASSERT_THAT(list, ::testing::ElementsAre());
@@ -192,7 +192,7 @@ TEST(LIST, CONSTRUCTOR_ALLOCATOR)
 
 TEST(LIST, CONSTRUCTOR_INITIALIZER_LIST)
 {
-    LinkedList<Value<int>> list{-1, 0, 1, 2, 3, 4};
+    xor_list<Value<int>> list{-1, 0, 1, 2, 3, 4};
 
     ASSERT_EQ(list.size(), 6U);
     ASSERT_THAT(list, ::testing::ElementsAre(-1, 0, 1, 2, 3, 4));
@@ -200,7 +200,7 @@ TEST(LIST, CONSTRUCTOR_INITIALIZER_LIST)
 
 TEST(LIST, CONSTRUCTOR_EMPTY_INITIALIZER_LIST)
 {
-    LinkedList<Value<int>> list({}, std::allocator<Value<int>>{});
+    xor_list<Value<int>> list({}, std::allocator<Value<int>>{});
 
     ASSERT_TRUE(list.empty());
     ASSERT_THAT(list, ::testing::ElementsAre());
@@ -209,7 +209,7 @@ TEST(LIST, CONSTRUCTOR_EMPTY_INITIALIZER_LIST)
 
 TEST(LIST, CONSTRUCTOR_DEFAULT_FILL)
 {
-    LinkedList<Value<int>> list(10U);
+    xor_list<Value<int>> list(10U);
 
     ASSERT_EQ(list.size(), 10U);
     ASSERT_THAT(list, ::testing::ElementsAre(int{}, int{}, int{}, int{}, int{}, int{}, int{}, int{}, int{}, int{}));
@@ -217,7 +217,7 @@ TEST(LIST, CONSTRUCTOR_DEFAULT_FILL)
 
 TEST(LIST, CONSTRUCTOR_EMPTY_DEFAULT_FILL)
 {
-    LinkedList<Value<int>> list(0);
+    xor_list<Value<int>> list(0);
 
     ASSERT_TRUE(list.empty());
     ASSERT_THAT(list, ::testing::ElementsAre());
@@ -226,7 +226,7 @@ TEST(LIST, CONSTRUCTOR_EMPTY_DEFAULT_FILL)
 
 TEST(LIST, CONSTRUCTOR_VALUE_FILL)
 {
-    LinkedList<Value<int>> list(10U, -1590);
+    xor_list<Value<int>> list(10U, -1590);
 
     ASSERT_EQ(list.size(), 10U);
     ASSERT_THAT(list, ::testing::ElementsAre(-1590, -1590, -1590, -1590, -1590, -1590, -1590, -1590, -1590, -1590));
@@ -234,7 +234,7 @@ TEST(LIST, CONSTRUCTOR_VALUE_FILL)
 
 TEST(LIST, CONSTRUCTOR_EMPTY_VALUE_FILL)
 {
-    LinkedList<Value<int>> list(0U, -1590);
+    xor_list<Value<int>> list(0U, -1590);
 
     ASSERT_TRUE(list.empty());
     ASSERT_THAT(list, ::testing::ElementsAre());
@@ -243,7 +243,7 @@ TEST(LIST, CONSTRUCTOR_EMPTY_VALUE_FILL)
 
 TEST(LIST, COPY_CONSTRUCTOR_EMPTY)
 {
-    LinkedList<Value<int>> l1, l2(l1);
+    xor_list<Value<int>> l1, l2(l1);
 
     ASSERT_TRUE(l1.empty());
     ASSERT_THAT(l1, ::testing::ElementsAre());
@@ -254,12 +254,12 @@ TEST(LIST, COPY_CONSTRUCTOR_EMPTY)
 
 TEST(LIST, COPY_CONSTRUCTOR_NON_EMPTY)
 {
-    LinkedList<Value<int>> l1{1, 2, 3, 4, 5, 6, 7, 8, 9}, l2(l1);
+    xor_list<Value<int>> l1{1, 2, 3, 4, 5, 6, 7, 8, 9}, l2(l1);
 
     ASSERT_EQ(l2.size(), 9U);
     ASSERT_THAT(l2, ::testing::ElementsAre(1, 2, 3, 4, 5, 6, 7, 8, 9));
 
-    l1.~LinkedList();
+    l1.~xor_list();
 
     ASSERT_EQ(l2.size(), 9U);
     ASSERT_THAT(l2, ::testing::ElementsAre(1, 2, 3, 4, 5, 6, 7, 8, 9));
@@ -267,7 +267,7 @@ TEST(LIST, COPY_CONSTRUCTOR_NON_EMPTY)
 
 TEST(LIST, MOVE_CONSTRUCTOR_EMPTY)
 {
-    LinkedList<Value<int>> l1, l2(std::move(l1));
+    xor_list<Value<int>> l1, l2(std::move(l1));
 
     ASSERT_TRUE(l1.empty());
     ASSERT_THAT(l1, ::testing::ElementsAre());
@@ -278,8 +278,8 @@ TEST(LIST, MOVE_CONSTRUCTOR_EMPTY)
 
 TEST(LIST, MOVE_CONSTRUCTOR_NON_EMPTY)
 {
-    LinkedList<Value<int>> l1{1, 2, 3, 4, 5, 6, 7, 8, 9};
-    LinkedList<Value<int>> l2(std::move(l1));
+    xor_list<Value<int>> l1{1, 2, 3, 4, 5, 6, 7, 8, 9};
+    xor_list<Value<int>> l2(std::move(l1));
 
     ASSERT_TRUE(l1.empty());
     ASSERT_THAT(l1, ::testing::ElementsAre());
@@ -291,7 +291,7 @@ TEST(LIST, MOVE_CONSTRUCTOR_NON_EMPTY)
 
 TEST(LIST, COPY_ASSIGNMENT_SELF)
 {
-    LinkedList<Value<int>> list{1, 2, 3, 4, 5, 6, 7, 8, 9};
+    xor_list<Value<int>> list{1, 2, 3, 4, 5, 6, 7, 8, 9};
 
     list = list;
 
@@ -301,7 +301,7 @@ TEST(LIST, COPY_ASSIGNMENT_SELF)
 
 TEST(LIST, COPY_ASSIGNMENT_EMPTY)
 {
-    LinkedList<Value<int>> l1{1, 2, 3, 4, 5, 6, 7, 8, 9}, l2;
+    xor_list<Value<int>> l1{1, 2, 3, 4, 5, 6, 7, 8, 9}, l2;
 
     l1 = l2;
 
@@ -311,7 +311,7 @@ TEST(LIST, COPY_ASSIGNMENT_EMPTY)
 
 TEST(LIST, COPY_ASSIGNMENT_NON_EMPTY_LESS)
 {
-    LinkedList<Value<int>> l1{1, 2, 3, 4, 5, 6, 7, 8, 9}, l2{10, 20, 30, 40, 50, 60};
+    xor_list<Value<int>> l1{1, 2, 3, 4, 5, 6, 7, 8, 9}, l2{10, 20, 30, 40, 50, 60};
 
     l1 = l2;
     l2.clear();
@@ -322,7 +322,7 @@ TEST(LIST, COPY_ASSIGNMENT_NON_EMPTY_LESS)
 
 TEST(LIST, COPY_ASSIGNMENT_NON_EMPTY_GREATER)
 {
-    LinkedList<Value<int>> l1{10, 20, 30, 40, 50, 60}, l2{1, 2, 3, 4, 5, 6, 7, 8, 9};
+    xor_list<Value<int>> l1{10, 20, 30, 40, 50, 60}, l2{1, 2, 3, 4, 5, 6, 7, 8, 9};
 
     l1 = l2;
     l2.clear();
@@ -333,7 +333,7 @@ TEST(LIST, COPY_ASSIGNMENT_NON_EMPTY_GREATER)
 
 TEST(LIST, COPY_ASSIGNMENT_SELF_SPECIAL_ALLOCATOR)
 {
-    LinkedList<Value<int>, RequiredCopyOnAssignmentAllocator<int>> list{1, 2, 3, 4, 5, 6, 7, 8, 9};
+    xor_list<Value<int>, RequiredCopyOnAssignmentAllocator<int>> list{1, 2, 3, 4, 5, 6, 7, 8, 9};
 
     list = list;
 
@@ -343,7 +343,7 @@ TEST(LIST, COPY_ASSIGNMENT_SELF_SPECIAL_ALLOCATOR)
 
 TEST(LIST, COPY_ASSIGNMENT_EMPTY_SPECIAL_ALLOCATOR)
 {
-    LinkedList<Value<int>, RequiredCopyOnAssignmentAllocator<int>> l1{1, 2, 3, 4, 5, 6, 7, 8, 9}, l2;
+    xor_list<Value<int>, RequiredCopyOnAssignmentAllocator<int>> l1{1, 2, 3, 4, 5, 6, 7, 8, 9}, l2;
 
     l1 = l2;
 
@@ -353,7 +353,7 @@ TEST(LIST, COPY_ASSIGNMENT_EMPTY_SPECIAL_ALLOCATOR)
 
 TEST(LIST, COPY_ASSIGNMENT_NON_EMPTY_LESS_SPECIAL_ALLOCATOR)
 {
-    LinkedList<Value<int>, RequiredCopyOnAssignmentAllocator<int>> l1{1, 2, 3, 4, 5, 6, 7, 8, 9}, l2{10, 20, 30, 40, 50, 60};
+    xor_list<Value<int>, RequiredCopyOnAssignmentAllocator<int>> l1{1, 2, 3, 4, 5, 6, 7, 8, 9}, l2{10, 20, 30, 40, 50, 60};
 
     l1 = l2;
     l2.clear();
@@ -364,7 +364,7 @@ TEST(LIST, COPY_ASSIGNMENT_NON_EMPTY_LESS_SPECIAL_ALLOCATOR)
 
 TEST(LIST, COPY_ASSIGNMENT_NON_EMPTY_GREATER_SPECIAL_ALLOCATOR)
 {
-    LinkedList<Value<int>, RequiredCopyOnAssignmentAllocator<int>> l1{10, 20, 30, 40, 50, 60}, l2{1, 2, 3, 4, 5, 6, 7, 8, 9};
+    xor_list<Value<int>, RequiredCopyOnAssignmentAllocator<int>> l1{10, 20, 30, 40, 50, 60}, l2{1, 2, 3, 4, 5, 6, 7, 8, 9};
 
     l1 = l2;
     l2.clear();
@@ -376,7 +376,7 @@ TEST(LIST, COPY_ASSIGNMENT_NON_EMPTY_GREATER_SPECIAL_ALLOCATOR)
 
 TEST(LIST, MOVE_ASSIGNMENT_SELF)
 {
-    LinkedList<Value<int>> list{1, 2, 3, 4, 5, 6, 7, 8, 9};
+    xor_list<Value<int>> list{1, 2, 3, 4, 5, 6, 7, 8, 9};
 
     list = std::move(list);
 
@@ -386,7 +386,7 @@ TEST(LIST, MOVE_ASSIGNMENT_SELF)
 
 TEST(LIST, MOVE_ASSIGNMENT_EMPTY)
 {
-    LinkedList<Value<int>> l1{1, 2, 3, 4, 5, 6, 7, 8, 9}, l2;
+    xor_list<Value<int>> l1{1, 2, 3, 4, 5, 6, 7, 8, 9}, l2;
 
     l1 = std::move(l2);
 
@@ -399,7 +399,7 @@ TEST(LIST, MOVE_ASSIGNMENT_EMPTY)
 
 TEST(LIST, MOVE_ASSIGNMENT_NON_EMPTY_LESS)
 {
-    LinkedList<Value<int>> l1{1, 2, 3, 4, 5, 6, 7, 8, 9}, l2{10, 20, 30, 40, 50, 60};
+    xor_list<Value<int>> l1{1, 2, 3, 4, 5, 6, 7, 8, 9}, l2{10, 20, 30, 40, 50, 60};
 
     l1 = std::move(l2);
 
@@ -412,7 +412,7 @@ TEST(LIST, MOVE_ASSIGNMENT_NON_EMPTY_LESS)
 
 TEST(LIST, MOVE_ASSIGNMENT_NON_EMPTY_GREATER)
 {
-    LinkedList<Value<int>> l1{10, 20, 30, 40, 50, 60}, l2{1, 2, 3, 4, 5, 6, 7, 8, 9};
+    xor_list<Value<int>> l1{10, 20, 30, 40, 50, 60}, l2{1, 2, 3, 4, 5, 6, 7, 8, 9};
 
     l1 = std::move(l2);
 
@@ -425,7 +425,7 @@ TEST(LIST, MOVE_ASSIGNMENT_NON_EMPTY_GREATER)
 
 TEST(LIST, MOVE_ASSIGNMENT_SELF_SPECIAL_ALLOCATOR1)
 {
-    LinkedList<Value<int>, NonRequiredMoveOnAssignmentAllocator1<int>> list{1, 2, 3, 4, 5, 6, 7, 8, 9};
+    xor_list<Value<int>, NonRequiredMoveOnAssignmentAllocator1<int>> list{1, 2, 3, 4, 5, 6, 7, 8, 9};
 
     list = std::move(list);
 
@@ -435,7 +435,7 @@ TEST(LIST, MOVE_ASSIGNMENT_SELF_SPECIAL_ALLOCATOR1)
 
 TEST(LIST, MOVE_ASSIGNMENT_EMPTY_SPECIAL_ALLOCATOR1)
 {
-    LinkedList<Value<int>, NonRequiredMoveOnAssignmentAllocator1<int>> l1{1, 2, 3, 4, 5, 6, 7, 8, 9}, l2;
+    xor_list<Value<int>, NonRequiredMoveOnAssignmentAllocator1<int>> l1{1, 2, 3, 4, 5, 6, 7, 8, 9}, l2;
 
     l1 = std::move(l2);
 
@@ -448,7 +448,7 @@ TEST(LIST, MOVE_ASSIGNMENT_EMPTY_SPECIAL_ALLOCATOR1)
 
 TEST(LIST, MOVE_ASSIGNMENT_NON_EMPTY_LESS_SPECIAL_ALLOCATOR1)
 {
-    LinkedList<Value<int>, NonRequiredMoveOnAssignmentAllocator1<int>> l1{1, 2, 3, 4, 5, 6, 7, 8, 9}, l2{10, 20, 30, 40, 50, 60};
+    xor_list<Value<int>, NonRequiredMoveOnAssignmentAllocator1<int>> l1{1, 2, 3, 4, 5, 6, 7, 8, 9}, l2{10, 20, 30, 40, 50, 60};
 
     l1 = std::move(l2);
 
@@ -461,7 +461,7 @@ TEST(LIST, MOVE_ASSIGNMENT_NON_EMPTY_LESS_SPECIAL_ALLOCATOR1)
 
 TEST(LIST, MOVE_ASSIGNMENT_NON_EMPTY_GREATER_SPECIAL_ALLOCATOR1)
 {
-    LinkedList<Value<int>, NonRequiredMoveOnAssignmentAllocator1<int>> l1{10, 20, 30, 40, 50, 60}, l2{1, 2, 3, 4, 5, 6, 7, 8, 9};
+    xor_list<Value<int>, NonRequiredMoveOnAssignmentAllocator1<int>> l1{10, 20, 30, 40, 50, 60}, l2{1, 2, 3, 4, 5, 6, 7, 8, 9};
 
     l1 = std::move(l2);
 
@@ -474,7 +474,7 @@ TEST(LIST, MOVE_ASSIGNMENT_NON_EMPTY_GREATER_SPECIAL_ALLOCATOR1)
 
 TEST(LIST, MOVE_ASSIGNMENT_SELF_SPECIAL_ALLOCATOR2)
 {
-    LinkedList<Value<int>, NonRequiredMoveOnAssignmentAllocator2<int>> list{1, 2, 3, 4, 5, 6, 7, 8, 9};
+    xor_list<Value<int>, NonRequiredMoveOnAssignmentAllocator2<int>> list{1, 2, 3, 4, 5, 6, 7, 8, 9};
 
     list = std::move(list);
 
@@ -484,7 +484,7 @@ TEST(LIST, MOVE_ASSIGNMENT_SELF_SPECIAL_ALLOCATOR2)
 
 TEST(LIST, MOVE_ASSIGNMENT_EMPTY_SPECIAL_ALLOCATOR2)
 {
-    LinkedList<Value<int>, NonRequiredMoveOnAssignmentAllocator2<int>> l1{1, 2, 3, 4, 5, 6, 7, 8, 9}, l2;
+    xor_list<Value<int>, NonRequiredMoveOnAssignmentAllocator2<int>> l1{1, 2, 3, 4, 5, 6, 7, 8, 9}, l2;
 
     l1 = std::move(l2);
 
@@ -497,7 +497,7 @@ TEST(LIST, MOVE_ASSIGNMENT_EMPTY_SPECIAL_ALLOCATOR2)
 
 TEST(LIST, MOVE_ASSIGNMENT_NON_EMPTY_LESS_SPECIAL_ALLOCATOR2)
 {
-    LinkedList<Value<int>, NonRequiredMoveOnAssignmentAllocator2<int>> l1{1, 2, 3, 4, 5, 6, 7, 8, 9}, l2{10, 20, 30, 40, 50, 60};
+    xor_list<Value<int>, NonRequiredMoveOnAssignmentAllocator2<int>> l1{1, 2, 3, 4, 5, 6, 7, 8, 9}, l2{10, 20, 30, 40, 50, 60};
 
     l1 = std::move(l2);
 
@@ -510,7 +510,7 @@ TEST(LIST, MOVE_ASSIGNMENT_NON_EMPTY_LESS_SPECIAL_ALLOCATOR2)
 
 TEST(LIST, MOVE_ASSIGNMENT_NON_EMPTY_GREATER_SPECIAL_ALLOCATOR2)
 {
-    LinkedList<Value<int>, NonRequiredMoveOnAssignmentAllocator2<int>> l1{10, 20, 30, 40, 50, 60}, l2{1, 2, 3, 4, 5, 6, 7, 8, 9};
+    xor_list<Value<int>, NonRequiredMoveOnAssignmentAllocator2<int>> l1{10, 20, 30, 40, 50, 60}, l2{1, 2, 3, 4, 5, 6, 7, 8, 9};
 
     l1 = std::move(l2);
 
@@ -524,7 +524,7 @@ TEST(LIST, MOVE_ASSIGNMENT_NON_EMPTY_GREATER_SPECIAL_ALLOCATOR2)
 
 TEST(LIST, MERGE_BOTH_EMPTY)
 {
-    LinkedList<NonMovableValue<int>> l1, l2;
+    xor_list<NonMovableValue<int>> l1, l2;
 
     l2.merge(l1);
 
@@ -537,7 +537,7 @@ TEST(LIST, MERGE_BOTH_EMPTY)
 
 TEST(LIST, MERGE_SINGLE_TO_EMPTY)
 {
-    LinkedList<Value<int>> l1{-10}, l2;
+    xor_list<Value<int>> l1{-10}, l2;
 
     l2.merge(l1);
 
@@ -550,7 +550,7 @@ TEST(LIST, MERGE_SINGLE_TO_EMPTY)
 
 TEST(LIST, MERGE_EMPTY_TO_SINGLE)
 {
-    LinkedList<Value<int>> l1, l2{-10};
+    xor_list<Value<int>> l1, l2{-10};
 
     l2.merge(l1);
 
@@ -563,7 +563,7 @@ TEST(LIST, MERGE_EMPTY_TO_SINGLE)
 
 TEST(LIST, MERGE_SINGLES_WITHOUT_SWAP)
 {
-    LinkedList<Value<int>> l1{10}, l2{-10};
+    xor_list<Value<int>> l1{10}, l2{-10};
 
     l2.merge(l1);
 
@@ -576,7 +576,7 @@ TEST(LIST, MERGE_SINGLES_WITHOUT_SWAP)
 
 TEST(LIST, MERGE_SINGLES_WITH_SWAP)
 {
-    LinkedList<Value<int>> l1{-10}, l2{10};
+    xor_list<Value<int>> l1{-10}, l2{10};
 
     l2.merge(l1);
 
@@ -589,7 +589,7 @@ TEST(LIST, MERGE_SINGLES_WITH_SWAP)
 
 TEST(LIST, MERGE_SAME_SINGLES)
 {
-    LinkedList<Value<int>> l1{10}, l2{10};
+    xor_list<Value<int>> l1{10}, l2{10};
 
     l2.merge(l1);
 
@@ -602,7 +602,7 @@ TEST(LIST, MERGE_SAME_SINGLES)
 
 TEST(LIST, MERGE_WITHOUT_SWAP)
 {
-    LinkedList<Value<int>> l1{5, 6, 7, 8}, l2{1, 2, 3, 4};
+    xor_list<Value<int>> l1{5, 6, 7, 8}, l2{1, 2, 3, 4};
 
     l2.merge(l1);
 
@@ -615,7 +615,7 @@ TEST(LIST, MERGE_WITHOUT_SWAP)
 
 TEST(LIST, MERGE_WITH_SWAP)
 {
-    LinkedList<Value<int>> l1{1, 2, 3, 4}, l2{5, 6, 7, 8};
+    xor_list<Value<int>> l1{1, 2, 3, 4}, l2{5, 6, 7, 8};
 
     l2.merge(l1);
 
@@ -628,7 +628,7 @@ TEST(LIST, MERGE_WITH_SWAP)
 
 TEST(LIST, MERGE_GENERIC1)
 {
-    LinkedList<Value<int>> l1{1, 2, 3, 4}, l2{0, 2, 4, 8};
+    xor_list<Value<int>> l1{1, 2, 3, 4}, l2{0, 2, 4, 8};
 
     l2.merge(l1);
 
@@ -641,7 +641,7 @@ TEST(LIST, MERGE_GENERIC1)
 
 TEST(LIST, MERGE_GENERIC2)
 {
-    LinkedList<Value<int>> l1{0, 2, 4, 8}, l2{1, 2, 3, 4};
+    xor_list<Value<int>> l1{0, 2, 4, 8}, l2{1, 2, 3, 4};
 
     l2.merge(l1);
 
@@ -655,7 +655,7 @@ TEST(LIST, MERGE_GENERIC2)
 
 TEST(LIST, SORT_EMPTY)
 {
-    LinkedList<Value<int>> list;
+    xor_list<Value<int>> list;
 
     list.sort();
 
@@ -665,7 +665,7 @@ TEST(LIST, SORT_EMPTY)
 
 TEST(LIST, SORT_SINGLE)
 {
-    LinkedList<Value<int>> list{10};
+    xor_list<Value<int>> list{10};
 
     list.sort();
 
@@ -675,7 +675,7 @@ TEST(LIST, SORT_SINGLE)
 
 TEST(LIST, SORT_NO_TWOS)
 {
-    LinkedList<Value<int>> list{-10, 10};
+    xor_list<Value<int>> list{-10, 10};
 
     list.sort();
 
@@ -685,7 +685,7 @@ TEST(LIST, SORT_NO_TWOS)
 
 TEST(LIST, SORT_TWOS)
 {
-    LinkedList<Value<int>> list{10, -10};
+    xor_list<Value<int>> list{10, -10};
 
     list.sort();
 
@@ -695,7 +695,7 @@ TEST(LIST, SORT_TWOS)
 
 TEST(LIST, SORT_EQUAL_TWOS)
 {
-    LinkedList<Value<int>> list{10, 10};
+    xor_list<Value<int>> list{10, 10};
 
     list.sort();
 
@@ -705,7 +705,7 @@ TEST(LIST, SORT_EQUAL_TWOS)
 
 TEST(LIST, SORT_SORTED)
 {
-    LinkedList<Value<int>> list{1, 2, 3, 4, 5, 6, 7, 8, 9};
+    xor_list<Value<int>> list{1, 2, 3, 4, 5, 6, 7, 8, 9};
 
     list.sort();
 
@@ -715,7 +715,7 @@ TEST(LIST, SORT_SORTED)
 
 TEST(LIST, SORT_SORTED_REVERSE)
 {
-    LinkedList<Value<int>> list{9, 8, 7, 6, 5, 4, 3, 2, 1};
+    xor_list<Value<int>> list{9, 8, 7, 6, 5, 4, 3, 2, 1};
 
     list.sort();
 
@@ -725,7 +725,7 @@ TEST(LIST, SORT_SORTED_REVERSE)
 
 TEST(LIST, SORT_GENERIC1)
 {
-    LinkedList<Value<int>> list{1, -2, 5, 65, 3, 42, 67, 35, 7, -10};
+    xor_list<Value<int>> list{1, -2, 5, 65, 3, 42, 67, 35, 7, -10};
 
     list.sort();
 
@@ -735,7 +735,7 @@ TEST(LIST, SORT_GENERIC1)
 
 TEST(LIST, SORT_GENERIC2)
 {
-    LinkedList<Value<int>> list{-10, 7, 35, 67, 42, 3, 65, 5, -2, 1};
+    xor_list<Value<int>> list{-10, 7, 35, 67, 42, 3, 65, 5, -2, 1};
 
     list.sort();
 
@@ -745,7 +745,7 @@ TEST(LIST, SORT_GENERIC2)
 
 TEST(LIST, SORT_GENERIC3)
 {
-    LinkedList<Value<int>> list{1, -2, 65, 3, 67, 35, -10};
+    xor_list<Value<int>> list{1, -2, 65, 3, 67, 35, -10};
 
     list.sort();
 
@@ -755,7 +755,7 @@ TEST(LIST, SORT_GENERIC3)
 
 TEST(LIST, SORT_GENERIC4)
 {
-    LinkedList<Value<int>> list{-10, 35, 67, 3, 65, -2, 1};
+    xor_list<Value<int>> list{-10, 35, 67, 3, 65, -2, 1};
 
     list.sort();
 
@@ -766,7 +766,7 @@ TEST(LIST, SORT_GENERIC4)
 
 TEST(LIST, SWAP_EMPTY)
 {
-    LinkedList<Value<int>> l1, l2;
+    xor_list<Value<int>> l1, l2;
 
     l1.swap(l2);
 
@@ -779,7 +779,7 @@ TEST(LIST, SWAP_EMPTY)
 
 TEST(LIST, SWAP_EMPTY_SINGLE)
 {
-    LinkedList<Value<int>> l1, l2{-123};
+    xor_list<Value<int>> l1, l2{-123};
 
     l1.swap(l2);
 
@@ -792,7 +792,7 @@ TEST(LIST, SWAP_EMPTY_SINGLE)
 
 TEST(LIST, SWAP_SINGLE_EMPTY)
 {
-    LinkedList<Value<int>> l1{-123}, l2;
+    xor_list<Value<int>> l1{-123}, l2;
 
     l1.swap(l2);
 
@@ -805,7 +805,7 @@ TEST(LIST, SWAP_SINGLE_EMPTY)
 
 TEST(LIST, SWAP_EMPTY_GENERIC)
 {
-    LinkedList<Value<int>> l1, l2{1, -2, 5, 65, 3, 42, 67, 35, 7, -10};
+    xor_list<Value<int>> l1, l2{1, -2, 5, 65, 3, 42, 67, 35, 7, -10};
 
     l1.swap(l2);
 
@@ -818,7 +818,7 @@ TEST(LIST, SWAP_EMPTY_GENERIC)
 
 TEST(LIST, SWAP_GENERIC_EMPTY)
 {
-    LinkedList<Value<int>> l1{1, -2, 5, 65, 3, 42, 67, 35, 7, -10}, l2;
+    xor_list<Value<int>> l1{1, -2, 5, 65, 3, 42, 67, 35, 7, -10}, l2;
 
     l1.swap(l2);
 
@@ -831,7 +831,7 @@ TEST(LIST, SWAP_GENERIC_EMPTY)
 
 TEST(LIST, SWAP_GENERICS1)
 {
-    LinkedList<Value<int>> l1{1, -2, 5, 65, 3, 42, 67, 35, 7, -10}, l2{298034, 78, 5490, 548};
+    xor_list<Value<int>> l1{1, -2, 5, 65, 3, 42, 67, 35, 7, -10}, l2{298034, 78, 5490, 548};
 
     l1.swap(l2);
 
@@ -844,7 +844,7 @@ TEST(LIST, SWAP_GENERICS1)
 
 TEST(LIST, SWAP_GENERICS2)
 {
-    LinkedList<Value<int>> l1{1, -2, 5, 65, 3, 42, 67, 35, 7, -10}, l2{298034, 78, 5490, 548};
+    xor_list<Value<int>> l1{1, -2, 5, 65, 3, 42, 67, 35, 7, -10}, l2{298034, 78, 5490, 548};
 
     l2.swap(l1);
 
@@ -857,7 +857,7 @@ TEST(LIST, SWAP_GENERICS2)
 
 TEST(LIST, SWAP_EMPTY_SPECIAL_ALLOCATOR)
 {
-    LinkedList<Value<int>, RequiredSwapAllocator<int>> l1, l2;
+    xor_list<Value<int>, RequiredSwapAllocator<int>> l1, l2;
 
     l1.swap(l2);
 
@@ -870,7 +870,7 @@ TEST(LIST, SWAP_EMPTY_SPECIAL_ALLOCATOR)
 
 TEST(LIST, SWAP_EMPTY_SINGLE_SPECIAL_ALLOCATOR)
 {
-    LinkedList<Value<int>, RequiredSwapAllocator<int>> l1, l2{-123};
+    xor_list<Value<int>, RequiredSwapAllocator<int>> l1, l2{-123};
 
     l1.swap(l2);
 
@@ -883,7 +883,7 @@ TEST(LIST, SWAP_EMPTY_SINGLE_SPECIAL_ALLOCATOR)
 
 TEST(LIST, SWAP_SINGLE_EMPTY_SPECIAL_ALLOCATOR)
 {
-    LinkedList<Value<int>, RequiredSwapAllocator<int>> l1{-123}, l2;
+    xor_list<Value<int>, RequiredSwapAllocator<int>> l1{-123}, l2;
 
     l1.swap(l2);
 
@@ -896,7 +896,7 @@ TEST(LIST, SWAP_SINGLE_EMPTY_SPECIAL_ALLOCATOR)
 
 TEST(LIST, SWAP_EMPTY_GENERIC_SPECIAL_ALLOCATOR)
 {
-    LinkedList<Value<int>, RequiredSwapAllocator<int>> l1, l2{1, -2, 5, 65, 3, 42, 67, 35, 7, -10};
+    xor_list<Value<int>, RequiredSwapAllocator<int>> l1, l2{1, -2, 5, 65, 3, 42, 67, 35, 7, -10};
 
     l1.swap(l2);
 
@@ -909,7 +909,7 @@ TEST(LIST, SWAP_EMPTY_GENERIC_SPECIAL_ALLOCATOR)
 
 TEST(LIST, SWAP_GENERIC_EMPTY_SPECIAL_ALLOCATOR)
 {
-    LinkedList<Value<int>, RequiredSwapAllocator<int>> l1{1, -2, 5, 65, 3, 42, 67, 35, 7, -10}, l2;
+    xor_list<Value<int>, RequiredSwapAllocator<int>> l1{1, -2, 5, 65, 3, 42, 67, 35, 7, -10}, l2;
 
     l1.swap(l2);
 
@@ -922,7 +922,7 @@ TEST(LIST, SWAP_GENERIC_EMPTY_SPECIAL_ALLOCATOR)
 
 TEST(LIST, SWAP_GENERICS1_SPECIAL_ALLOCATOR)
 {
-    LinkedList<Value<int>, RequiredSwapAllocator<int>> l1{1, -2, 5, 65, 3, 42, 67, 35, 7, -10}, l2{298034, 78, 5490, 548};
+    xor_list<Value<int>, RequiredSwapAllocator<int>> l1{1, -2, 5, 65, 3, 42, 67, 35, 7, -10}, l2{298034, 78, 5490, 548};
 
     l1.swap(l2);
 
@@ -935,7 +935,7 @@ TEST(LIST, SWAP_GENERICS1_SPECIAL_ALLOCATOR)
 
 TEST(LIST, SWAP_GENERICS2_SPECIAL_ALLOCATOR)
 {
-    LinkedList<Value<int>, RequiredSwapAllocator<int>> l1{1, -2, 5, 65, 3, 42, 67, 35, 7, -10}, l2{298034, 78, 5490, 548};
+    xor_list<Value<int>, RequiredSwapAllocator<int>> l1{1, -2, 5, 65, 3, 42, 67, 35, 7, -10}, l2{298034, 78, 5490, 548};
 
     l2.swap(l1);
 
@@ -949,7 +949,7 @@ TEST(LIST, SWAP_GENERICS2_SPECIAL_ALLOCATOR)
 
 TEST(LIST, UNIQUE_EMPTY)
 {
-    LinkedList<Value<int>> list;
+    xor_list<Value<int>> list;
 
     list.unique();
 
@@ -959,7 +959,7 @@ TEST(LIST, UNIQUE_EMPTY)
 
 TEST(LIST, UNIQUE_SINGLE)
 {
-    LinkedList<Value<int>> list{-30};
+    xor_list<Value<int>> list{-30};
 
     list.unique();
 
@@ -969,7 +969,7 @@ TEST(LIST, UNIQUE_SINGLE)
 
 TEST(LIST, UNIQUE_TWOS_SAME)
 {
-    LinkedList<Value<int>> list{-30, -30};
+    xor_list<Value<int>> list{-30, -30};
 
     list.unique();
 
@@ -979,7 +979,7 @@ TEST(LIST, UNIQUE_TWOS_SAME)
 
 TEST(LIST, UNIQUE_TWOS_NOTSAME)
 {
-    LinkedList<Value<int>> list{-30, 5};
+    xor_list<Value<int>> list{-30, 5};
 
     list.unique();
 
@@ -989,7 +989,7 @@ TEST(LIST, UNIQUE_TWOS_NOTSAME)
 
 TEST(LIST, UNIQUE_GENERIC1)
 {
-    LinkedList<Value<int>> list{-1, -1, 2, -1, 2, 2, -1, -1, -1};
+    xor_list<Value<int>> list{-1, -1, 2, -1, 2, 2, -1, -1, -1};
 
     list.unique();
 
@@ -999,7 +999,7 @@ TEST(LIST, UNIQUE_GENERIC1)
 
 TEST(LIST, UNIQUE_GENERIC2)
 {
-    LinkedList<Value<int>> list{100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100};
+    xor_list<Value<int>> list{100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100};
 
     list.unique();
 
@@ -1010,7 +1010,7 @@ TEST(LIST, UNIQUE_GENERIC2)
 
 TEST(LIST, PUSH1)
 {
-    LinkedList<Value<int>> list;
+    xor_list<Value<int>> list;
 
     list.push_back(0);
     list.push_front(-1);
@@ -1023,7 +1023,7 @@ TEST(LIST, PUSH1)
 
 TEST(LIST, PUSH2)
 {
-    LinkedList<Value<int>> list;
+    xor_list<Value<int>> list;
 
     list.push_front(0);
     list.push_back(-1);
@@ -1036,7 +1036,7 @@ TEST(LIST, PUSH2)
 
 TEST(LIST, PUSH_CREF_1)
 {
-    LinkedList<Value<int>> list;
+    xor_list<Value<int>> list;
     const Value<int> values[4] = {0, -1, 1, 2};
 
     list.push_back(values[0]);
@@ -1050,7 +1050,7 @@ TEST(LIST, PUSH_CREF_1)
 
 TEST(LIST, PUSH_CREF_2)
 {
-    LinkedList<Value<int>> list;
+    xor_list<Value<int>> list;
     const Value<int> values[4] = {0, -1, 1, 2};
 
     list.push_front(values[0]);
@@ -1065,7 +1065,7 @@ TEST(LIST, PUSH_CREF_2)
 
 TEST(LIST, EMPLACE1)
 {
-    LinkedList<Value<int>> list;
+    xor_list<Value<int>> list;
 
     list.emplace_back(0);
     list.emplace_front(-1);
@@ -1078,7 +1078,7 @@ TEST(LIST, EMPLACE1)
 
 TEST(LIST, EMPLACE2)
 {
-    LinkedList<Value<int>> list;
+    xor_list<Value<int>> list;
 
     list.emplace_front(0);
     list.emplace_back(-1);
@@ -1091,7 +1091,7 @@ TEST(LIST, EMPLACE2)
 
 TEST(LIST, EMPLACE_EXCEPTION1)
 {
-    LinkedList<ThrowsOnConstructValue<int>> list;
+    xor_list<ThrowsOnConstructValue<int>> list;
     const Value<int> value(-1);
 
     list.emplace_back(value);
@@ -1103,7 +1103,7 @@ TEST(LIST, EMPLACE_EXCEPTION1)
 
 TEST(LIST, EMPLACE_EXCEPTION2)
 {
-    LinkedList<ThrowsOnConstructValue<int>> list;
+    xor_list<ThrowsOnConstructValue<int>> list;
 
     ASSERT_ANY_THROW(list.emplace_back(-1));
 
@@ -1114,7 +1114,7 @@ TEST(LIST, EMPLACE_EXCEPTION2)
 
 TEST(LIST, POP_BACK_SINGLE)
 {
-    LinkedList<Value<int>> list{ 5 };
+    xor_list<Value<int>> list{ 5 };
 
     list.pop_back();
 
@@ -1124,7 +1124,7 @@ TEST(LIST, POP_BACK_SINGLE)
 
 TEST(LIST, POP_FRONT_SINGLE)
 {
-    LinkedList<Value<int>> list{5};
+    xor_list<Value<int>> list{5};
 
     list.pop_front();
 
@@ -1134,7 +1134,7 @@ TEST(LIST, POP_FRONT_SINGLE)
 
 TEST(LIST, POPS1)
 {
-    LinkedList<Value<int>> list{ 5, 10, 15 };
+    xor_list<Value<int>> list{ 5, 10, 15 };
 
     list.pop_back();
     ASSERT_EQ(list.size(), 2U);
@@ -1151,7 +1151,7 @@ TEST(LIST, POPS1)
 
 TEST(LIST, POPS2)
 {
-    LinkedList<Value<int>> list{5, 10, 15};
+    xor_list<Value<int>> list{5, 10, 15};
 
     list.pop_front();
     ASSERT_EQ(list.size(), 2U);
@@ -1169,7 +1169,7 @@ TEST(LIST, POPS2)
 
 TEST(LIST, REVERSE_EMPTY)
 {
-    LinkedList<Value<int>> list;
+    xor_list<Value<int>> list;
 
     list.reverse();
 
@@ -1179,7 +1179,7 @@ TEST(LIST, REVERSE_EMPTY)
 
 TEST(LIST, REVERSE_SINGLE)
 {
-    LinkedList<Value<int>> list{500};
+    xor_list<Value<int>> list{500};
 
     list.reverse();
 
@@ -1189,7 +1189,7 @@ TEST(LIST, REVERSE_SINGLE)
 
 TEST(LIST, REVERSE_GENERIC1)
 {
-    LinkedList<Value<int>> list{1, 2, 3, 4, 5, 6, 7, 8, 9};
+    xor_list<Value<int>> list{1, 2, 3, 4, 5, 6, 7, 8, 9};
 
     list.reverse();
 
@@ -1199,7 +1199,7 @@ TEST(LIST, REVERSE_GENERIC1)
 
 TEST(LIST, REVERSE_GENERIC2)
 {
-    LinkedList<Value<int>> list{1, 2};
+    xor_list<Value<int>> list{1, 2};
 
     list.reverse();
 
@@ -1210,7 +1210,7 @@ TEST(LIST, REVERSE_GENERIC2)
 
 TEST(LIST, BACK_SINGLE)
 {
-    LinkedList<Value<int>> list{ 50 };
+    xor_list<Value<int>> list{ 50 };
     const auto &listRef = list;
 
     ASSERT_EQ(list.back(), 50);
@@ -1219,7 +1219,7 @@ TEST(LIST, BACK_SINGLE)
 
 TEST(LIST, BACK_GENERIC)
 {
-    LinkedList<Value<int>> list{1, 2, 3, 4, 5, 6, 7, 8, 9};
+    xor_list<Value<int>> list{1, 2, 3, 4, 5, 6, 7, 8, 9};
     const auto &listRef = list;
 
     ASSERT_EQ(list.back(), 9);
@@ -1229,7 +1229,7 @@ TEST(LIST, BACK_GENERIC)
 
 TEST(LIST, FRONT_SINGLE)
 {
-    LinkedList<Value<int>> list{50};
+    xor_list<Value<int>> list{50};
     const auto &listRef = list;
 
     ASSERT_EQ(list.front(), 50);
@@ -1238,7 +1238,7 @@ TEST(LIST, FRONT_SINGLE)
 
 TEST(LIST, FRONT_GENERIC)
 {
-    LinkedList<Value<int>> list{1, 2, 3, 4, 5, 6, 7, 8, 9};
+    xor_list<Value<int>> list{1, 2, 3, 4, 5, 6, 7, 8, 9};
     const auto &listRef = list;
 
     ASSERT_EQ(list.front(), 1);
@@ -1248,7 +1248,7 @@ TEST(LIST, FRONT_GENERIC)
 
 TEST(LIST, ASSIGN_COUNT_VAL_EMPTY_0)
 {
-    LinkedList<Value<int>> list;
+    xor_list<Value<int>> list;
 
     list.assign(0, -135);
 
@@ -1258,7 +1258,7 @@ TEST(LIST, ASSIGN_COUNT_VAL_EMPTY_0)
 
 TEST(LIST, ASSIGN_COUNT_VAL_EMPTY)
 {
-    LinkedList<Value<int>> list;
+    xor_list<Value<int>> list;
 
     list.assign(10, -135);
 
@@ -1268,7 +1268,7 @@ TEST(LIST, ASSIGN_COUNT_VAL_EMPTY)
 
 TEST(LIST, ASSIGN_COUNT_VAL_TRUNCATE_TO_EMPTY_SINGLE)
 {
-    LinkedList<Value<int>> list{ -45672 };
+    xor_list<Value<int>> list{ -45672 };
 
     list.assign(0, -135);
 
@@ -1278,7 +1278,7 @@ TEST(LIST, ASSIGN_COUNT_VAL_TRUNCATE_TO_EMPTY_SINGLE)
 
 TEST(LIST, ASSIGN_COUNT_VAL_TRUNCATE_TO_EMPTY_SEVERAL)
 {
-    LinkedList<Value<int>> list{-45672, 234, -2353, 1, 21};
+    xor_list<Value<int>> list{-45672, 234, -2353, 1, 21};
 
     list.assign(0, -135);
 
@@ -1288,7 +1288,7 @@ TEST(LIST, ASSIGN_COUNT_VAL_TRUNCATE_TO_EMPTY_SEVERAL)
 
 TEST(LIST, ASSIGN_COUNT_VAL_TRUNCATE_TO_SINGLE_SEVERAL)
 {
-    LinkedList<Value<int>> list{-45672, 234, -2353, 1, 21};
+    xor_list<Value<int>> list{-45672, 234, -2353, 1, 21};
 
     list.assign(1, -135);
 
@@ -1298,7 +1298,7 @@ TEST(LIST, ASSIGN_COUNT_VAL_TRUNCATE_TO_SINGLE_SEVERAL)
 
 TEST(LIST, ASSIGN_COUNT_VAL_TRUNCATE_SEVERAL)
 {
-    LinkedList<Value<int>> list{-45672, 234, -2353, 1, 21};
+    xor_list<Value<int>> list{-45672, 234, -2353, 1, 21};
 
     list.assign(3, 200);
 
@@ -1308,7 +1308,7 @@ TEST(LIST, ASSIGN_COUNT_VAL_TRUNCATE_SEVERAL)
 
 TEST(LIST, ASSIGN_COUNT_VAL_APPEND_SINGLE_FROM_EMPTY)
 {
-    LinkedList<Value<int>> list;
+    xor_list<Value<int>> list;
 
     list.assign(1, 2018);
 
@@ -1318,7 +1318,7 @@ TEST(LIST, ASSIGN_COUNT_VAL_APPEND_SINGLE_FROM_EMPTY)
 
 TEST(LIST, ASSIGN_COUNT_VAL_APPEND_SEVERAL_FROM_EMPTY)
 {
-    LinkedList<Value<int>> list;
+    xor_list<Value<int>> list;
 
     list.assign(5, 2018);
 
@@ -1328,7 +1328,7 @@ TEST(LIST, ASSIGN_COUNT_VAL_APPEND_SEVERAL_FROM_EMPTY)
 
 TEST(LIST, ASSIGN_COUNT_VAL_APPEND_SINGLE)
 {
-    LinkedList<Value<int>> list{-100, 0, 100, 200, 300};
+    xor_list<Value<int>> list{-100, 0, 100, 200, 300};
 
     list.assign(6, 2018);
 
@@ -1338,7 +1338,7 @@ TEST(LIST, ASSIGN_COUNT_VAL_APPEND_SINGLE)
 
 TEST(LIST, ASSIGN_COUNT_VAL_APPEND_SEVERAL)
 {
-    LinkedList<Value<int>> list{-100, 0, 100, 200, 300};;
+    xor_list<Value<int>> list{-100, 0, 100, 200, 300};;
 
     list.assign(10, 98);
 
@@ -1348,7 +1348,7 @@ TEST(LIST, ASSIGN_COUNT_VAL_APPEND_SEVERAL)
 
 TEST(LIST, ASSIGN_COUNT_VAL_WITHOUT_RESIZE)
 {
-    LinkedList<Value<int>> list{-100, 0, 100, 200, 300};
+    xor_list<Value<int>> list{-100, 0, 100, 200, 300};
 
     list.assign(5, 98);
 
@@ -1358,7 +1358,7 @@ TEST(LIST, ASSIGN_COUNT_VAL_WITHOUT_RESIZE)
 
 TEST(LIST, ASSIGN_RANGE_EMPTY_0)
 {
-    LinkedList<Value<int>> list;
+    xor_list<Value<int>> list;
 
     list.assign((Value<int>*)nullptr, (Value<int>*)nullptr);
 
@@ -1368,7 +1368,7 @@ TEST(LIST, ASSIGN_RANGE_EMPTY_0)
 
 TEST(LIST, ASSIGN_RANGE_EMPTY)
 {
-    LinkedList<Value<int>> list;
+    xor_list<Value<int>> list;
 
     {
         Value<int> range[9] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
@@ -1381,7 +1381,7 @@ TEST(LIST, ASSIGN_RANGE_EMPTY)
 
 TEST(LIST, ASSIGN_RANGE_TRUNCATE_TO_EMPTY_SINGLE)
 {
-    LinkedList<Value<int>> list{-45672};
+    xor_list<Value<int>> list{-45672};
 
     list.assign((Value<int>*)nullptr, (Value<int>*)nullptr);
 
@@ -1391,7 +1391,7 @@ TEST(LIST, ASSIGN_RANGE_TRUNCATE_TO_EMPTY_SINGLE)
 
 TEST(LIST, ASSIGN_RANGE_TRUNCATE_TO_EMPTY_SEVERAL)
 {
-    LinkedList<Value<int>> list{-45672, 234, -2353, 1, 21};
+    xor_list<Value<int>> list{-45672, 234, -2353, 1, 21};
 
     list.assign((Value<int>*)nullptr, (Value<int>*)nullptr);
 
@@ -1401,7 +1401,7 @@ TEST(LIST, ASSIGN_RANGE_TRUNCATE_TO_EMPTY_SEVERAL)
 
 TEST(LIST, ASSIGN_RANGE_TRUNCATE_TO_SINGLE_SEVERAL)
 {
-    LinkedList<Value<int>> list{-45672, 234, -2353, 1, 21};
+    xor_list<Value<int>> list{-45672, 234, -2353, 1, 21};
 
     {
         Value<int> range[1] = {-135};
@@ -1414,7 +1414,7 @@ TEST(LIST, ASSIGN_RANGE_TRUNCATE_TO_SINGLE_SEVERAL)
 
 TEST(LIST, ASSIGN_RANGE_TRUNCATE_SEVERAL)
 {
-    LinkedList<Value<int>> list{-45672, 234, -2353, 1, 21};
+    xor_list<Value<int>> list{-45672, 234, -2353, 1, 21};
 
     {
         Value<int> range[3] = {-5, 25, 8};
@@ -1427,7 +1427,7 @@ TEST(LIST, ASSIGN_RANGE_TRUNCATE_SEVERAL)
 
 TEST(LIST, ASSIGN_RANGE_APPEND_SINGLE_FROM_EMPTY)
 {
-    LinkedList<Value<int>> list;
+    xor_list<Value<int>> list;
 
     {
         Value<int> range[1] = {2018};
@@ -1440,7 +1440,7 @@ TEST(LIST, ASSIGN_RANGE_APPEND_SINGLE_FROM_EMPTY)
 
 TEST(LIST, ASSIGN_RANGE_APPEND_SEVERAL_FROM_EMPTY)
 {
-    LinkedList<Value<int>> list;
+    xor_list<Value<int>> list;
 
     {
         Value<int> range[9] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
@@ -1453,7 +1453,7 @@ TEST(LIST, ASSIGN_RANGE_APPEND_SEVERAL_FROM_EMPTY)
 
 TEST(LIST, ASSIGN_RANGE_APPEND_SINGLE)
 {
-    LinkedList<Value<int>> list{-100, 0, 100, 200, 300};
+    xor_list<Value<int>> list{-100, 0, 100, 200, 300};
 
     {
         Value<int> range[9] = {1, 2, 3, 4, 5, 6};
@@ -1466,7 +1466,7 @@ TEST(LIST, ASSIGN_RANGE_APPEND_SINGLE)
 
 TEST(LIST, ASSIGN_RANGE_APPEND_SEVERAL)
 {
-    LinkedList<Value<int>> list{-100, 0, 100, 200, 300};;
+    xor_list<Value<int>> list{-100, 0, 100, 200, 300};;
 
     {
         Value<int> range[9] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
@@ -1479,7 +1479,7 @@ TEST(LIST, ASSIGN_RANGE_APPEND_SEVERAL)
 
 TEST(LIST, ASSIGN_RANGE_WITHOUT_RESIZE)
 {
-    LinkedList<Value<int>> list{-100, 0, 100, 200, 300};
+    xor_list<Value<int>> list{-100, 0, 100, 200, 300};
 
     {
         Value<int> range[9] = {1, 2, 3, 4, 5};
@@ -1493,7 +1493,7 @@ TEST(LIST, ASSIGN_RANGE_WITHOUT_RESIZE)
 
 TEST(LIST, RESIZE_EMPTY_TO_EMPTY)
 {
-    LinkedList<Value<int>> list;
+    xor_list<Value<int>> list;
 
     list.resize(0, 50);
 
@@ -1503,7 +1503,7 @@ TEST(LIST, RESIZE_EMPTY_TO_EMPTY)
 
 TEST(LIST, RESIZE_EMPTY_TO_SINGLE)
 {
-    LinkedList<Value<int>> list;
+    xor_list<Value<int>> list;
 
     list.resize(1, 50);
 
@@ -1513,7 +1513,7 @@ TEST(LIST, RESIZE_EMPTY_TO_SINGLE)
 
 TEST(LIST, RESIZE_EMPTY_TO_SEVERAL)
 {
-    LinkedList<Value<int>> list;
+    xor_list<Value<int>> list;
 
     list.resize(5, 50);
 
@@ -1523,7 +1523,7 @@ TEST(LIST, RESIZE_EMPTY_TO_SEVERAL)
 
 TEST(LIST, RESIZE_SINGLE_TO_EMPTY)
 {
-    LinkedList<Value<int>> list{1266};
+    xor_list<Value<int>> list{1266};
 
     list.resize(0, 50);
 
@@ -1533,7 +1533,7 @@ TEST(LIST, RESIZE_SINGLE_TO_EMPTY)
 
 TEST(LIST, RESIZE_SINGLE_TO_SINGLE)
 {
-    LinkedList<Value<int>> list{1266};
+    xor_list<Value<int>> list{1266};
 
     list.resize(1, 50);
 
@@ -1543,7 +1543,7 @@ TEST(LIST, RESIZE_SINGLE_TO_SINGLE)
 
 TEST(LIST, RESIZE_SINGLE_TO_SEVERAL)
 {
-    LinkedList<Value<int>> list{1266};
+    xor_list<Value<int>> list{1266};
 
     list.resize(5, 50);
 
@@ -1553,7 +1553,7 @@ TEST(LIST, RESIZE_SINGLE_TO_SEVERAL)
 
 TEST(LIST, RESIZE_SEVERAL_TO_EMPTY)
 {
-    LinkedList<Value<int>> list{123, 56, 102, -12111};
+    xor_list<Value<int>> list{123, 56, 102, -12111};
 
     list.resize(0, 50);
 
@@ -1563,7 +1563,7 @@ TEST(LIST, RESIZE_SEVERAL_TO_EMPTY)
 
 TEST(LIST, RESIZE_SEVERAL_TO_SINGLE)
 {
-    LinkedList<Value<int>> list{123, 56, 102, -12111};
+    xor_list<Value<int>> list{123, 56, 102, -12111};
 
     list.resize(1, 50);
 
@@ -1573,7 +1573,7 @@ TEST(LIST, RESIZE_SEVERAL_TO_SINGLE)
 
 TEST(LIST, RESIZE_SEVERAL_TO_SEVERAL_TRUNCATE)
 {
-    LinkedList<Value<int>> list{123, 56, 102, -12111};
+    xor_list<Value<int>> list{123, 56, 102, -12111};
 
     list.resize(2, 50);
 
@@ -1583,7 +1583,7 @@ TEST(LIST, RESIZE_SEVERAL_TO_SEVERAL_TRUNCATE)
 
 TEST(LIST, RESIZE_SEVERAL_TO_SEVERAL_APPEND)
 {
-    LinkedList<Value<int>> list{123, 56, 102, -12111};
+    xor_list<Value<int>> list{123, 56, 102, -12111};
 
     list.resize(10, 50);
 
@@ -1593,7 +1593,7 @@ TEST(LIST, RESIZE_SEVERAL_TO_SEVERAL_APPEND)
 
 TEST(LIST, RESIZE_SEVERAL_TO_SEVERAL_WITHOUT_RESIZE)
 {
-    LinkedList<Value<int>> list{123, 56, 102, -12111};
+    xor_list<Value<int>> list{123, 56, 102, -12111};
 
     list.resize(4, 50);
 
@@ -1604,7 +1604,7 @@ TEST(LIST, RESIZE_SEVERAL_TO_SEVERAL_WITHOUT_RESIZE)
 
 TEST(LIST, SPLICE_POSITION_OTHER_EMPTY_TO_EMPTY)
 {
-    LinkedList<Value<int>> l1, l2;
+    xor_list<Value<int>> l1, l2;
 
     l1.splice(l1.cbegin(), l2);
 
@@ -1625,7 +1625,7 @@ TEST(LIST, SPLICE_POSITION_OTHER_EMPTY_TO_EMPTY)
 
 TEST(LIST, SPLICE_POSITION_OTHER_EMPTY_TO_SINGLE)
 {
-    LinkedList<Value<int>> l1{-5}, l2;
+    xor_list<Value<int>> l1{-5}, l2;
 
     l1.splice(l1.cbegin(), l2);
 
@@ -1646,7 +1646,7 @@ TEST(LIST, SPLICE_POSITION_OTHER_EMPTY_TO_SINGLE)
 
 TEST(LIST, SPLICE_POSITION_OTHER_EMPTY_TO_GENERIC)
 {
-    LinkedList<Value<int>> l1{-10, 2, 55, -3, 323}, l2;
+    xor_list<Value<int>> l1{-10, 2, 55, -3, 323}, l2;
 
     l1.splice(l1.cbegin(), l2);
 
@@ -1667,7 +1667,7 @@ TEST(LIST, SPLICE_POSITION_OTHER_EMPTY_TO_GENERIC)
 
 TEST(LIST, SPLICE_POSITION_OTHER_SINGLE_TO_EMPTY_BEGIN)
 {
-    LinkedList<Value<int>> l1, l2{4};
+    xor_list<Value<int>> l1, l2{4};
 
     l1.splice(l1.cbegin(), l2);
 
@@ -1680,7 +1680,7 @@ TEST(LIST, SPLICE_POSITION_OTHER_SINGLE_TO_EMPTY_BEGIN)
 
 TEST(LIST, SPLICE_POSITION_OTHER_SINGLE_TO_EMPTY_END)
 {
-    LinkedList<Value<int>> l1, l2{4};
+    xor_list<Value<int>> l1, l2{4};
 
     l1.splice(l1.cend(), l2);
 
@@ -1693,7 +1693,7 @@ TEST(LIST, SPLICE_POSITION_OTHER_SINGLE_TO_EMPTY_END)
 
 TEST(LIST, SPLICE_POSITION_OTHER_SINGLE_TO_SINGLE_BEGIN)
 {
-    LinkedList<Value<int>> l1{1}, l2{4};
+    xor_list<Value<int>> l1{1}, l2{4};
 
     l1.splice(l1.cbegin(), l2);
 
@@ -1706,7 +1706,7 @@ TEST(LIST, SPLICE_POSITION_OTHER_SINGLE_TO_SINGLE_BEGIN)
 
 TEST(LIST, SPLICE_POSITION_OTHER_SINGLE_TO_SINGLE_END)
 {
-    LinkedList<Value<int>> l1{1}, l2{4};
+    xor_list<Value<int>> l1{1}, l2{4};
 
     l1.splice(l1.cend(), l2);
 
@@ -1719,7 +1719,7 @@ TEST(LIST, SPLICE_POSITION_OTHER_SINGLE_TO_SINGLE_END)
 
 TEST(LIST, SPLICE_POSITION_OTHER_SINGLE_TO_GENERIC_BEGIN)
 {
-    LinkedList<Value<int>> l1{1, 2, 3, 4}, l2{100};
+    xor_list<Value<int>> l1{1, 2, 3, 4}, l2{100};
 
     l1.splice(l1.cbegin(), l2);
 
@@ -1732,7 +1732,7 @@ TEST(LIST, SPLICE_POSITION_OTHER_SINGLE_TO_GENERIC_BEGIN)
 
 TEST(LIST, SPLICE_POSITION_OTHER_SINGLE_TO_GENERIC_END)
 {
-    LinkedList<Value<int>> l1{1, 2, 3, 4}, l2{100};
+    xor_list<Value<int>> l1{1, 2, 3, 4}, l2{100};
 
     l1.splice(l1.cend(), l2);
 
@@ -1745,7 +1745,7 @@ TEST(LIST, SPLICE_POSITION_OTHER_SINGLE_TO_GENERIC_END)
 
 TEST(LIST, SPLICE_POSITION_OTHER_SINGLE_TO_GENERIC_MIDDLE)
 {
-    LinkedList<Value<int>> l1{1, 2, 3, 4}, l2{100};
+    xor_list<Value<int>> l1{1, 2, 3, 4}, l2{100};
 
     l1.splice(++++l1.cbegin(), l2);
 
@@ -1758,7 +1758,7 @@ TEST(LIST, SPLICE_POSITION_OTHER_SINGLE_TO_GENERIC_MIDDLE)
 
 TEST(LIST, SPLICE_POSITION_OTHER_GENERIC_TO_EMPTY_BEGIN)
 {
-    LinkedList<Value<int>> l1, l2{1, 4, -5, 124312, 0, 0, 124};
+    xor_list<Value<int>> l1, l2{1, 4, -5, 124312, 0, 0, 124};
 
     l1.splice(l1.cbegin(), l2);
 
@@ -1771,7 +1771,7 @@ TEST(LIST, SPLICE_POSITION_OTHER_GENERIC_TO_EMPTY_BEGIN)
 
 TEST(LIST, SPLICE_POSITION_OTHER_GENERIC_TO_EMPTY_END)
 {
-    LinkedList<Value<int>> l1, l2{1, 4, -5, 124312, 0, 0, 124};
+    xor_list<Value<int>> l1, l2{1, 4, -5, 124312, 0, 0, 124};
 
     l1.splice(l1.cend(), l2);
 
@@ -1784,7 +1784,7 @@ TEST(LIST, SPLICE_POSITION_OTHER_GENERIC_TO_EMPTY_END)
 
 TEST(LIST, SPLICE_POSITION_OTHER_GENERIC_TO_SINGLE_BEGIN)
 {
-    LinkedList<Value<int>> l1{500}, l2{1, 4, -5, 124312, 0, 0, 124};
+    xor_list<Value<int>> l1{500}, l2{1, 4, -5, 124312, 0, 0, 124};
 
     l1.splice(l1.cbegin(), l2);
 
@@ -1797,7 +1797,7 @@ TEST(LIST, SPLICE_POSITION_OTHER_GENERIC_TO_SINGLE_BEGIN)
 
 TEST(LIST, SPLICE_POSITION_OTHER_GENERIC_TO_SINGLE_END)
 {
-    LinkedList<Value<int>> l1{500}, l2{1, 4, -5, 124312, 0, 0, 124};
+    xor_list<Value<int>> l1{500}, l2{1, 4, -5, 124312, 0, 0, 124};
 
     l1.splice(l1.cend(), l2);
 
@@ -1810,7 +1810,7 @@ TEST(LIST, SPLICE_POSITION_OTHER_GENERIC_TO_SINGLE_END)
 
 TEST(LIST, SPLICE_POSITION_OTHER_GENERIC_TO_GENERIC_BEGIN)
 {
-    LinkedList<Value<int>> l1{1, 2, 3, 4}, l2{899, 4, -5, 124312, 0, 124};
+    xor_list<Value<int>> l1{1, 2, 3, 4}, l2{899, 4, -5, 124312, 0, 124};
 
     l1.splice(l1.cbegin(), l2);
 
@@ -1823,7 +1823,7 @@ TEST(LIST, SPLICE_POSITION_OTHER_GENERIC_TO_GENERIC_BEGIN)
 
 TEST(LIST, SPLICE_POSITION_OTHER_GENERIC_TO_GENERIC_END)
 {
-    LinkedList<Value<int>> l1{1, 2, 3, 4}, l2{899, 4, -5, 124312, 0, 124};
+    xor_list<Value<int>> l1{1, 2, 3, 4}, l2{899, 4, -5, 124312, 0, 124};
 
     l1.splice(l1.cend(), l2);
 
@@ -1836,7 +1836,7 @@ TEST(LIST, SPLICE_POSITION_OTHER_GENERIC_TO_GENERIC_END)
 
 TEST(LIST, SPLICE_POSITION_OTHER_GENERIC_TO_GENERIC_MIDDLE)
 {
-    LinkedList<Value<int>> l1{1, 2, 3, 4}, l2{899, 4, -5, 124312, 0, 124};
+    xor_list<Value<int>> l1{1, 2, 3, 4}, l2{899, 4, -5, 124312, 0, 124};
 
     l1.splice(++++l1.cbegin(), l2);
 
@@ -1849,7 +1849,7 @@ TEST(LIST, SPLICE_POSITION_OTHER_GENERIC_TO_GENERIC_MIDDLE)
 
 TEST(LIST, SPLICE_POSITION_OTHER_POSITION_SINGLE_TO_EMPTY_BEGIN)
 {
-    LinkedList<Value<int>> l1, l2{1};
+    xor_list<Value<int>> l1, l2{1};
 
     l1.splice(l1.cbegin(), l2, l2.cbegin());
 
@@ -1862,7 +1862,7 @@ TEST(LIST, SPLICE_POSITION_OTHER_POSITION_SINGLE_TO_EMPTY_BEGIN)
 
 TEST(LIST, SPLICE_POSITION_OTHER_POSITION_SINGLE_TO_EMPTY_END)
 {
-    LinkedList<Value<int>> l1, l2{1};
+    xor_list<Value<int>> l1, l2{1};
 
     l1.splice(l1.cend(), l2, l2.cbegin());
 
@@ -1875,7 +1875,7 @@ TEST(LIST, SPLICE_POSITION_OTHER_POSITION_SINGLE_TO_EMPTY_END)
 
 TEST(LIST, SPLICE_POSITION_OTHER_POSITION_SINGLE_TO_SINGLE_BEGIN)
 {
-    LinkedList<Value<int>> l1{33}, l2{1};
+    xor_list<Value<int>> l1{33}, l2{1};
 
     l1.splice(l1.cbegin(), l2, l2.cbegin());
 
@@ -1888,7 +1888,7 @@ TEST(LIST, SPLICE_POSITION_OTHER_POSITION_SINGLE_TO_SINGLE_BEGIN)
 
 TEST(LIST, SPLICE_POSITION_OTHER_POSITION_SINGLE_TO_SINGLE_END)
 {
-    LinkedList<Value<int>> l1{33}, l2{1};
+    xor_list<Value<int>> l1{33}, l2{1};
 
     l1.splice(l1.cend(), l2, l2.cbegin());
 
@@ -1901,7 +1901,7 @@ TEST(LIST, SPLICE_POSITION_OTHER_POSITION_SINGLE_TO_SINGLE_END)
 
 TEST(LIST, SPLICE_POSITION_OTHER_POSITION_SINGLE_TO_GENERIC_BEGIN)
 {
-    LinkedList<Value<int>> l1{33, 44, 55, 66}, l2{1};
+    xor_list<Value<int>> l1{33, 44, 55, 66}, l2{1};
 
     l1.splice(l1.cbegin(), l2, l2.cbegin());
 
@@ -1914,7 +1914,7 @@ TEST(LIST, SPLICE_POSITION_OTHER_POSITION_SINGLE_TO_GENERIC_BEGIN)
 
 TEST(LIST, SPLICE_POSITION_OTHER_POSITION_SINGLE_TO_GENERIC_END)
 {
-    LinkedList<Value<int>> l1{33, 44, 55, 66}, l2{1};
+    xor_list<Value<int>> l1{33, 44, 55, 66}, l2{1};
 
     l1.splice(l1.cend(), l2, l2.cbegin());
 
@@ -1927,7 +1927,7 @@ TEST(LIST, SPLICE_POSITION_OTHER_POSITION_SINGLE_TO_GENERIC_END)
 
 TEST(LIST, SPLICE_POSITION_OTHER_POSITION_SINGLE_TO_GENERIC_MIDDLE)
 {
-    LinkedList<Value<int>> l1{33, 44, 55, 66}, l2{1};
+    xor_list<Value<int>> l1{33, 44, 55, 66}, l2{1};
 
     l1.splice(++++l1.cbegin(), l2, l2.cbegin());
 
@@ -1940,7 +1940,7 @@ TEST(LIST, SPLICE_POSITION_OTHER_POSITION_SINGLE_TO_GENERIC_MIDDLE)
 
 TEST(LIST, SPLICE_POSITION_OTHER_POSITION_GENERIC_BEGIN_TO_EMPTY_BEGIN)
 {
-    LinkedList<Value<int>> l1, l2{33, 44, 55, 66};
+    xor_list<Value<int>> l1, l2{33, 44, 55, 66};
 
     l1.splice(l1.cbegin(), l2, l2.cbegin());
 
@@ -1953,7 +1953,7 @@ TEST(LIST, SPLICE_POSITION_OTHER_POSITION_GENERIC_BEGIN_TO_EMPTY_BEGIN)
 
 TEST(LIST, SPLICE_POSITION_OTHER_POSITION_GENERIC_LAST_TO_EMPTY_BEGIN)
 {
-    LinkedList<Value<int>> l1, l2{33, 44, 55, 66};
+    xor_list<Value<int>> l1, l2{33, 44, 55, 66};
 
     l1.splice(l1.cbegin(), l2, --l2.cend());
 
@@ -1966,7 +1966,7 @@ TEST(LIST, SPLICE_POSITION_OTHER_POSITION_GENERIC_LAST_TO_EMPTY_BEGIN)
 
 TEST(LIST, SPLICE_POSITION_OTHER_POSITION_GENERIC_MIDDLE_TO_EMPTY_BEGIN)
 {
-    LinkedList<Value<int>> l1, l2{33, 44, 55, 66};
+    xor_list<Value<int>> l1, l2{33, 44, 55, 66};
 
     l1.splice(l1.cbegin(), l2, ++++l2.cbegin());
 
@@ -1979,7 +1979,7 @@ TEST(LIST, SPLICE_POSITION_OTHER_POSITION_GENERIC_MIDDLE_TO_EMPTY_BEGIN)
 
 TEST(LIST, SPLICE_POSITION_OTHER_POSITION_GENERIC_BEGIN_TO_EMPTY_END)
 {
-    LinkedList<Value<int>> l1, l2{33, 44, 55, 66};
+    xor_list<Value<int>> l1, l2{33, 44, 55, 66};
 
     l1.splice(l1.cend(), l2, l2.cbegin());
 
@@ -1992,7 +1992,7 @@ TEST(LIST, SPLICE_POSITION_OTHER_POSITION_GENERIC_BEGIN_TO_EMPTY_END)
 
 TEST(LIST, SPLICE_POSITION_OTHER_POSITION_GENERIC_LAST_TO_EMPTY_END)
 {
-    LinkedList<Value<int>> l1, l2{33, 44, 55, 66};
+    xor_list<Value<int>> l1, l2{33, 44, 55, 66};
 
     l1.splice(l1.cend(), l2, --l2.cend());
 
@@ -2005,7 +2005,7 @@ TEST(LIST, SPLICE_POSITION_OTHER_POSITION_GENERIC_LAST_TO_EMPTY_END)
 
 TEST(LIST, SPLICE_POSITION_OTHER_POSITION_GENERIC_MIDDLE_TO_EMPTY_END)
 {
-    LinkedList<Value<int>> l1, l2{33, 44, 55, 66};
+    xor_list<Value<int>> l1, l2{33, 44, 55, 66};
 
     l1.splice(l1.cend(), l2, ++++l2.cbegin());
 
@@ -2018,7 +2018,7 @@ TEST(LIST, SPLICE_POSITION_OTHER_POSITION_GENERIC_MIDDLE_TO_EMPTY_END)
 
 TEST(LIST, SPLICE_POSITION_OTHER_POSITION_GENERIC_BEGIN_TO_SINGLE_BEGIN)
 {
-    LinkedList<Value<int>> l1{1}, l2{33, 44, 55, 66};
+    xor_list<Value<int>> l1{1}, l2{33, 44, 55, 66};
 
     l1.splice(l1.cbegin(), l2, l2.cbegin());
 
@@ -2031,7 +2031,7 @@ TEST(LIST, SPLICE_POSITION_OTHER_POSITION_GENERIC_BEGIN_TO_SINGLE_BEGIN)
 
 TEST(LIST, SPLICE_POSITION_OTHER_POSITION_GENERIC_LAST_TO_SINGLE_BEGIN)
 {
-    LinkedList<Value<int>> l1{1}, l2{33, 44, 55, 66};
+    xor_list<Value<int>> l1{1}, l2{33, 44, 55, 66};
 
     l1.splice(l1.cbegin(), l2, --l2.cend());
 
@@ -2044,7 +2044,7 @@ TEST(LIST, SPLICE_POSITION_OTHER_POSITION_GENERIC_LAST_TO_SINGLE_BEGIN)
 
 TEST(LIST, SPLICE_POSITION_OTHER_POSITION_GENERIC_MIDDLE_TO_SINGLE_BEGIN)
 {
-    LinkedList<Value<int>> l1{1}, l2{33, 44, 55, 66};
+    xor_list<Value<int>> l1{1}, l2{33, 44, 55, 66};
 
     l1.splice(l1.cbegin(), l2, ++++l2.cbegin());
 
@@ -2057,7 +2057,7 @@ TEST(LIST, SPLICE_POSITION_OTHER_POSITION_GENERIC_MIDDLE_TO_SINGLE_BEGIN)
 
 TEST(LIST, SPLICE_POSITION_OTHER_POSITION_GENERIC_BEGIN_TO_SINGLE_END)
 {
-    LinkedList<Value<int>> l1{1}, l2{33, 44, 55, 66};
+    xor_list<Value<int>> l1{1}, l2{33, 44, 55, 66};
 
     l1.splice(l1.cend(), l2, l2.cbegin());
 
@@ -2070,7 +2070,7 @@ TEST(LIST, SPLICE_POSITION_OTHER_POSITION_GENERIC_BEGIN_TO_SINGLE_END)
 
 TEST(LIST, SPLICE_POSITION_OTHER_POSITION_GENERIC_LAST_TO_SINGLE_END)
 {
-    LinkedList<Value<int>> l1{1}, l2{33, 44, 55, 66};
+    xor_list<Value<int>> l1{1}, l2{33, 44, 55, 66};
 
     l1.splice(l1.cend(), l2, --l2.cend());
 
@@ -2083,7 +2083,7 @@ TEST(LIST, SPLICE_POSITION_OTHER_POSITION_GENERIC_LAST_TO_SINGLE_END)
 
 TEST(LIST, SPLICE_POSITION_OTHER_POSITION_GENERIC_MIDDLE_TO_SINGLE_END)
 {
-    LinkedList<Value<int>> l1{1}, l2{33, 44, 55, 66};
+    xor_list<Value<int>> l1{1}, l2{33, 44, 55, 66};
 
     l1.splice(l1.cend(), l2, ++++l2.cbegin());
 
@@ -2096,7 +2096,7 @@ TEST(LIST, SPLICE_POSITION_OTHER_POSITION_GENERIC_MIDDLE_TO_SINGLE_END)
 
 TEST(LIST, SPLICE_POSITION_OTHER_POSITION_GENERIC_BEGIN_TO_GENERIC_BEGIN)
 {
-    LinkedList<Value<int>> l1{1, -1, 2, -2}, l2{33, 44, 55, 66};
+    xor_list<Value<int>> l1{1, -1, 2, -2}, l2{33, 44, 55, 66};
 
     l1.splice(l1.cbegin(), l2, l2.cbegin());
 
@@ -2109,7 +2109,7 @@ TEST(LIST, SPLICE_POSITION_OTHER_POSITION_GENERIC_BEGIN_TO_GENERIC_BEGIN)
 
 TEST(LIST, SPLICE_POSITION_OTHER_POSITION_GENERIC_LAST_TO_GENERIC_BEGIN)
 {
-    LinkedList<Value<int>> l1{1, -1, 2, -2}, l2{33, 44, 55, 66};
+    xor_list<Value<int>> l1{1, -1, 2, -2}, l2{33, 44, 55, 66};
 
     l1.splice(l1.cbegin(), l2, --l2.cend());
 
@@ -2122,7 +2122,7 @@ TEST(LIST, SPLICE_POSITION_OTHER_POSITION_GENERIC_LAST_TO_GENERIC_BEGIN)
 
 TEST(LIST, SPLICE_POSITION_OTHER_POSITION_GENERIC_MIDDLE_TO_GENERIC_BEGIN)
 {
-    LinkedList<Value<int>> l1{1, -1, 2, -2}, l2{33, 44, 55, 66};
+    xor_list<Value<int>> l1{1, -1, 2, -2}, l2{33, 44, 55, 66};
 
     l1.splice(l1.cbegin(), l2, ++++l2.cbegin());
 
@@ -2135,7 +2135,7 @@ TEST(LIST, SPLICE_POSITION_OTHER_POSITION_GENERIC_MIDDLE_TO_GENERIC_BEGIN)
 
 TEST(LIST, SPLICE_POSITION_OTHER_POSITION_GENERIC_BEGIN_TO_GENERIC_END)
 {
-    LinkedList<Value<int>> l1{1, -1, 2, -2}, l2{33, 44, 55, 66};
+    xor_list<Value<int>> l1{1, -1, 2, -2}, l2{33, 44, 55, 66};
 
     l1.splice(l1.cend(), l2, l2.cbegin());
 
@@ -2148,7 +2148,7 @@ TEST(LIST, SPLICE_POSITION_OTHER_POSITION_GENERIC_BEGIN_TO_GENERIC_END)
 
 TEST(LIST, SPLICE_POSITION_OTHER_POSITION_GENERIC_LAST_TO_GENERIC_END)
 {
-    LinkedList<Value<int>> l1{1, -1, 2, -2}, l2{33, 44, 55, 66};
+    xor_list<Value<int>> l1{1, -1, 2, -2}, l2{33, 44, 55, 66};
 
     l1.splice(l1.cend(), l2, --l2.cend());
 
@@ -2161,7 +2161,7 @@ TEST(LIST, SPLICE_POSITION_OTHER_POSITION_GENERIC_LAST_TO_GENERIC_END)
 
 TEST(LIST, SPLICE_POSITION_OTHER_POSITION_GENERIC_MIDDLE_TO_GENERIC_END)
 {
-    LinkedList<Value<int>> l1{1, -1, 2, -2}, l2{33, 44, 55, 66};
+    xor_list<Value<int>> l1{1, -1, 2, -2}, l2{33, 44, 55, 66};
 
     l1.splice(l1.cend(), l2, ++++l2.cbegin());
 
@@ -2174,7 +2174,7 @@ TEST(LIST, SPLICE_POSITION_OTHER_POSITION_GENERIC_MIDDLE_TO_GENERIC_END)
 
 TEST(LIST, SPLICE_POSITION_OTHER_POSITION_GENERIC_BEGIN_TO_GENERIC_MIDDLE)
 {
-    LinkedList<Value<int>> l1{1, -1, 2, -2}, l2{33, 44, 55, 66};
+    xor_list<Value<int>> l1{1, -1, 2, -2}, l2{33, 44, 55, 66};
 
     l1.splice(++l1.cbegin(), l2, l2.cbegin());
 
@@ -2187,7 +2187,7 @@ TEST(LIST, SPLICE_POSITION_OTHER_POSITION_GENERIC_BEGIN_TO_GENERIC_MIDDLE)
 
 TEST(LIST, SPLICE_POSITION_OTHER_POSITION_GENERIC_LAST_TO_GENERIC_MIDDLE)
 {
-    LinkedList<Value<int>> l1{1, -1, 2, -2}, l2{33, 44, 55, 66};
+    xor_list<Value<int>> l1{1, -1, 2, -2}, l2{33, 44, 55, 66};
 
     l1.splice(++l1.cbegin(), l2, --l2.cend());
 
@@ -2200,7 +2200,7 @@ TEST(LIST, SPLICE_POSITION_OTHER_POSITION_GENERIC_LAST_TO_GENERIC_MIDDLE)
 
 TEST(LIST, SPLICE_POSITION_OTHER_POSITION_GENERIC_MIDDLE_TO_GENERIC_MIDDLE)
 {
-    LinkedList<Value<int>> l1{1, -1, 2, -2}, l2{33, 44, 55, 66};
+    xor_list<Value<int>> l1{1, -1, 2, -2}, l2{33, 44, 55, 66};
 
     l1.splice(++l1.cbegin(), l2, ++++l2.cbegin());
 
@@ -2213,7 +2213,7 @@ TEST(LIST, SPLICE_POSITION_OTHER_POSITION_GENERIC_MIDDLE_TO_GENERIC_MIDDLE)
 
 TEST(LIST, SPLICE_POSITION_THIS_SINGLE)
 {
-    LinkedList<Value<int>> list{87};
+    xor_list<Value<int>> list{87};
 
     list.splice(list.cend(), list, list.cbegin());
 
@@ -2223,7 +2223,7 @@ TEST(LIST, SPLICE_POSITION_THIS_SINGLE)
 
 TEST(LIST, SPLICE_POSITION_THIS_ADJACENTS)
 {
-    LinkedList<Value<int>> list{55, 1323};
+    xor_list<Value<int>> list{55, 1323};
 
     list.splice(list.cbegin(), list, --list.cend());
 
@@ -2233,7 +2233,7 @@ TEST(LIST, SPLICE_POSITION_THIS_ADJACENTS)
 
 TEST(LIST, SPLICE_RANGE_EMPTY)
 {
-    LinkedList<Value<int>> l1{1, 2, 3, 4, 5}, l2;
+    xor_list<Value<int>> l1{1, 2, 3, 4, 5}, l2;
 
     l1.splice(l1.cbegin(), l2, l2.cbegin(), l2.cend());
 
@@ -2246,7 +2246,7 @@ TEST(LIST, SPLICE_RANGE_EMPTY)
 
 TEST(LIST, SPLICE_RANGE_GENERIC)
 {
-    LinkedList<Value<int>> l1{1, 2, 3, 4, 5}, l2{10, 20, 30};
+    xor_list<Value<int>> l1{1, 2, 3, 4, 5}, l2{10, 20, 30};
 
     l1.splice(++++l1.cbegin(), l2, l2.cbegin(), l2.cend());
 
@@ -2259,7 +2259,7 @@ TEST(LIST, SPLICE_RANGE_GENERIC)
 
 TEST(LIST, SPLICE_RANGE_THIS_GENERIC)
 {
-    LinkedList<Value<int>> list{1, 2, 3, 4, 5};
+    xor_list<Value<int>> list{1, 2, 3, 4, 5};
 
     list.splice(list.cbegin(), list, ++list.cbegin(), list.cend());
 
@@ -2270,7 +2270,7 @@ TEST(LIST, SPLICE_RANGE_THIS_GENERIC)
 
 TEST(LIST, INSERT_RANGE_EXCEPTION1)
 {
-    LinkedList<ThrowsOnCopyConstructValueCounted<int>> list;
+    xor_list<ThrowsOnCopyConstructValueCounted<int>> list;
     ThrowsOnCopyConstructValueCounted<int> range[5] = {5, 4, 1, 2, 5};
 
     ThrowsOnCopyConstructValueCounted<int>::counter = 1;
@@ -2283,7 +2283,7 @@ TEST(LIST, INSERT_RANGE_EXCEPTION1)
 
 TEST(LIST, INSERT_RANGE_EXCEPTION2)
 {
-    LinkedList<ThrowsOnCopyConstructValueCounted<int>> list{100, 200, 300, 400};
+    xor_list<ThrowsOnCopyConstructValueCounted<int>> list{100, 200, 300, 400};
     ThrowsOnCopyConstructValueCounted<int> range[5] = {5, 4, 1, 2, 5};
 
     ThrowsOnCopyConstructValueCounted<int>::counter = 2;

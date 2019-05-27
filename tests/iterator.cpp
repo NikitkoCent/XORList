@@ -7,7 +7,7 @@
 
 TEST(ITERATOR, OPERATOR_DECR)
 {
-    LinkedList<std::pair<int, std::string>> list;
+    xor_list<std::pair<int, std::string>> list;
 
     list.emplace_back(40, "12312");
     list.emplace_back(-113, "");

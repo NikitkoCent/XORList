@@ -15,7 +15,7 @@
 
 
 template <typename T, class TAllocator = ::std::allocator<T>>
-class LinkedList
+class xor_list
 {
 private:
     template<typename It, typename V>
@@ -45,7 +45,7 @@ public:
         }
 
     private:
-        friend class LinkedList<T, TAllocator>;
+        friend class xor_list<T, TAllocator>;
         friend class const_iterator;
 
 
@@ -68,7 +68,7 @@ public:
         const_iterator& operator=(const_iterator&&) noexcept = default;
 
     private:
-        friend class LinkedList<T, TAllocator>;
+        friend class xor_list<T, TAllocator>;
         friend class iterator;
 
 
@@ -93,39 +93,39 @@ public:
     using const_pointer = typename ::std::allocator_traits<TAllocator>::const_pointer;
 
 
-    LinkedList()
-        : LinkedList(TAllocator())
+    xor_list()
+        : xor_list(TAllocator())
     {}
 
-    explicit LinkedList(const TAllocator &alloc)
+    explicit xor_list(const TAllocator &alloc)
         : allocator(alloc), beforeHead(&afterTail), afterTail(&beforeHead)
     {}
 
-    LinkedList(::std::initializer_list<T> il, const TAllocator &alloc = TAllocator())
-        : LinkedList(alloc)
+    xor_list(::std::initializer_list<T> il, const TAllocator &alloc = TAllocator())
+        : xor_list(alloc)
     {
         assign(::std::move(il));
     }
 
-    explicit LinkedList(size_type n, const TAllocator &alloc = TAllocator())
-        : LinkedList(alloc)
+    explicit xor_list(size_type n, const TAllocator &alloc = TAllocator())
+        : xor_list(alloc)
     {
         resize(n);
     }
 
-    LinkedList(size_type n, const_reference val, const TAllocator &alloc = TAllocator())
-        : LinkedList(alloc)
+    xor_list(size_type n, const_reference val, const TAllocator &alloc = TAllocator())
+        : xor_list(alloc)
     {
         resize(n, val);
     }
 
-    LinkedList(const LinkedList &other)
-        : LinkedList(::std::allocator_traits<NodeAllocator>::select_on_container_copy_construction(other.allocator))
+    xor_list(const xor_list &other)
+        : xor_list(::std::allocator_traits<NodeAllocator>::select_on_container_copy_construction(other.allocator))
     {
         insert(cbegin(), other.cbegin(), other.cend());
     }
 
-    LinkedList(LinkedList &&other)
+    xor_list(xor_list &&other)
         : allocator(::std::move(other.allocator)), beforeHead(&afterTail), afterTail(&beforeHead)
     {
         if (!other.empty())
@@ -134,12 +134,12 @@ public:
         }
     }
 
-    virtual ~LinkedList()
+    virtual ~xor_list()
     {
         clear();
     }
 
-    LinkedList& operator=(const LinkedList &right)
+    xor_list& operator=(const xor_list &right)
     {
         if (this != ::std::addressof(right))
         {
@@ -148,7 +148,7 @@ public:
         return *this;
     }
 
-    LinkedList& operator=(LinkedList &&right)
+    xor_list& operator=(xor_list &&right)
     {
         if (this != ::std::addressof(right))
         {
@@ -157,7 +157,7 @@ public:
         return *this;
     }
 
-    void swap(LinkedList &other)
+    void swap(xor_list &other)
     {
         swapImpl(other);
     }
@@ -478,7 +478,7 @@ public:
     }
 
 
-    void splice(const_iterator position, LinkedList &x) noexcept
+    void splice(const_iterator position, xor_list &x) noexcept
     {
         if ((this == ::std::addressof(x)) || (x.empty()))
         {
@@ -491,7 +491,7 @@ public:
         (void)insertSequenceToThisBefore(position, range.first, range.second, distance);
     }
 
-    void splice(const_iterator position, LinkedList &x, const_iterator i) noexcept
+    void splice(const_iterator position, xor_list &x, const_iterator i) noexcept
     {
         if ((this == ::std::addressof(x)) && ((position == i) || (position.prev == i.current)))
         {
@@ -502,7 +502,7 @@ public:
         (void)insertNodeToThisBefore(position, static_cast<NodeWithValue*>(range.first.current));
     }
 
-    void splice(const_iterator position, LinkedList &x, const_iterator first, const_iterator last) noexcept
+    void splice(const_iterator position, xor_list &x, const_iterator first, const_iterator last) noexcept
     {
         if (first == last)
         {
@@ -545,14 +545,14 @@ public:
     }
 
     // All iterators from *this and x will become invalid
-    void merge(LinkedList &x) noexcept
+    void merge(xor_list &x) noexcept
     {
         merge(x, ::std::less<T>{});
     }
 
     // All iterators from *this and x will become invalid
     template <typename Compare>
-    void merge(LinkedList &x, Compare isLess) noexcept
+    void merge(xor_list &x, Compare isLess) noexcept
     {
         if (!x.empty())
         {
@@ -719,7 +719,7 @@ private:
         IteratorBase& operator=(IteratorBase&&) noexcept = default;
 
     private:
-        friend class LinkedList<T, TAllocator>;
+        friend class xor_list<T, TAllocator>;
     };
 
 
@@ -903,7 +903,7 @@ private:
     }
 
 
-    void swapWithoutAllocators(LinkedList &other)
+    void swapWithoutAllocators(xor_list &other)
     {
         const auto thisDistance = size();
         const auto otherDistance = other.size();
@@ -932,7 +932,7 @@ private:
 
     template<typename Alloc = NodeAllocator>
     typename ::std::enable_if<::std::allocator_traits<Alloc>::propagate_on_container_swap::value>::type
-    swapImpl(LinkedList &other)
+    swapImpl(xor_list &other)
     {
         ::std::swap(allocator, other.allocator);
         swapWithoutAllocators(other);
@@ -940,7 +940,7 @@ private:
 
     template<typename Alloc = NodeAllocator>
     typename ::std::enable_if<!::std::allocator_traits<Alloc>::propagate_on_container_swap::value>::type
-    swapImpl(LinkedList &other)
+    swapImpl(xor_list &other)
     {
         swapWithoutAllocators(other);
     }
@@ -948,7 +948,7 @@ private:
 
     template<typename Alloc = NodeAllocator>
     typename ::std::enable_if<::std::allocator_traits<Alloc>::propagate_on_container_copy_assignment::value>::type
-    copyAssignmentImpl(const LinkedList &right)
+    copyAssignmentImpl(const xor_list &right)
     {
         clear();
         allocator = right.allocator;
@@ -957,7 +957,7 @@ private:
 
     template<typename Alloc = NodeAllocator>
     typename ::std::enable_if<!::std::allocator_traits<Alloc>::propagate_on_container_copy_assignment::value>::type
-    copyAssignmentImpl(const LinkedList &right)
+    copyAssignmentImpl(const xor_list &right)
     {
         clear();
         assign(right.cbegin(), right.cend());
@@ -966,7 +966,7 @@ private:
 
     template<typename Alloc = NodeAllocator>
     typename ::std::enable_if<::std::allocator_traits<Alloc>::propagate_on_container_move_assignment::value>::type
-    moveAssignmentImpl(LinkedList &&right)
+    moveAssignmentImpl(xor_list &&right)
     {
         clear();
         allocator = ::std::move(right.allocator);
@@ -975,7 +975,7 @@ private:
 
     template<typename Alloc = NodeAllocator>
     typename ::std::enable_if<!::std::allocator_traits<Alloc>::propagate_on_container_move_assignment::value>::type
-    moveAssignmentImpl(LinkedList &&right)
+    moveAssignmentImpl(xor_list &&right)
     {
         clear();
 
