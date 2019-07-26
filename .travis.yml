@@ -25,16 +25,20 @@ matrix:
         - os: osx
           compiler: gcc
     include:
-        - name: "Windows MSVS"
+        - name: "Compiler: MSVC (Debug)"
           os: windows
-          env:
-            - BUILD_CONFIGURATION=Debug
-            - BUILD_CONFIGURATION=Release
           script:
             - cd build
             - cmake ..
-            - cmake --build . --config $BUILD_CONFIGURATION
-            - ctest -C $BUILD_CONFIGURATION --output-on-failure
+            - cmake --build . --config Debug
+            - ctest -C Debug --output-on-failure
+        - name: "Compiler: MSVC (Release)"
+          os: windows
+          script:
+            - cd build
+            - cmake ..
+            - cmake --build . --config Release
+            - ctest -C Release --output-on-failure
 
 # addons:
 #     apt:
