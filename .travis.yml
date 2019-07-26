@@ -58,5 +58,5 @@ matrix:
             - cd build
             - cmake -DCMAKE_BUILD_TYPE=Debug -DENABLE_GCOV=ON ..
             - cmake --build .
-            - ctest -C Debug --output-on-failure
+            - Debug/unittesting
           after_success: coveralls --gcov-options '\-lp'
