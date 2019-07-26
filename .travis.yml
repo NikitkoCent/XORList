@@ -11,4 +11,4 @@ script:
     - cd build
     - cmake ..
     - cmake --build .
-    - ctest --output-on-failur
+    - ctest --output-on-failure
