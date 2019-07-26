@@ -4,10 +4,6 @@ find_package(Threads)
 
 include(${cmake-modules_SOURCE_DIR}/EnableExtraCompilerWarnings.cmake)
 
-enable_testing()
-
-find_package(Threads)
-
 add_executable(unittesting ${CMAKE_SOURCE_DIR}/include/xor_list/xor_list.h
                            list.cpp
                            iterator.cpp)

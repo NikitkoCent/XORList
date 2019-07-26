@@ -8,4 +8,6 @@ add_subdirectory(third-party)
 
 include_directories(include)
 
+# Enable testing for the project
+enable_testing()
 add_subdirectory(tests)
