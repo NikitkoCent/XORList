@@ -14,10 +14,23 @@ env:
     - BUILD_CONFIGURATION=Debug
     - BUILD_CONFIGURATION=Release
 
+script:
+    - cd build
+    - cmake -DCMAKE_BUILD_TYPE=$BUILD_CONFIGURATION ..
+    - cmake --build .
+    - ctest -C $BUILD_CONFIGURATION --output-on-failure
+
 matrix:
     exclude:
         - os: osx
           compiler: gcc
+    include:
+        - os: windows
+          script:
+            - cd build
+            - cmake ..
+            - cmake --build --config $BUILD_CONFIGURATION .
+            - ctest -C $BUILD_CONFIGURATION
 
 # addons:
 #     apt:
@@ -26,9 +39,3 @@ matrix:
 #         packages:
 #             - cmake-data
 #             - cmake
-
-script:
-    - cd build
-    - cmake -DCMAKE_BUILD_TYPE=$BUILD_CONFIGURATION ..
-    - cmake --build .
-    - ctest -C $BUILD_CONFIGURATION --output-on-failure
