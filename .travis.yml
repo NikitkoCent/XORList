@@ -59,5 +59,4 @@ matrix:
             - cmake -DCMAKE_BUILD_TYPE=Debug -DENABLE_GCOV=ON ..
             - cmake --build .
             - ctest -C Debug --output-on-failure
-            - cd ${TRAVIS_BUILD_DIR}
-          after_success: coveralls --build-root build -i include -E build/* -E third-party/* --gcov-options '\-lp'
+          after_success: coveralls --gcov-options '\-lp'
