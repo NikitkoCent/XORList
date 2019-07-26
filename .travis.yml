@@ -59,4 +59,4 @@ matrix:
             - cmake -DCMAKE_BUILD_TYPE=Debug -DENABLE_GCOV=ON ..
             - cmake --build .
             - ctest -C Debug --output-on-failure
-          after_success: coveralls --gcov-options '\-lp'
+          after_success: coveralls --gcov-options '\-lp's
