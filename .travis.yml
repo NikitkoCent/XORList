@@ -25,7 +25,11 @@ matrix:
         - os: osx
           compiler: gcc
     include:
-        - os: windows
+        - name: "Windows MSVS"
+          os: windows
+          env:
+            - BUILD_CONFIGURATION=Debug
+            - BUILD_CONFIGURATION=Release
           script:
             - cd build
             - cmake ..
