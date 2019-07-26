@@ -1,11 +1,23 @@
-os:         linux
-dist:       trusty
+language: cpp
 
-language:   cpp
+os:
+    - linux
+    - osx
+
+dist: trusty
 
 compiler:
-    - gcc
     - clang
+    - gcc
+
+env:
+    - BUILD_CONFIGURATION=Debug
+    - BUILD_CONFIGURATION=Release
+
+matrix:
+    exclude:
+        - os: osx
+        - compiler: gcc
 
 # addons:
 #     apt:
@@ -17,6 +29,6 @@ compiler:
 
 script:
     - cd build
-    - cmake -DCMAKE_BUILD_TYPE=Debug ..
+    - cmake -DCMAKE_BUILD_TYPE=$BUILD_CONFIGURATION ..
     - cmake --build .
-    - ctest -C Debug --output-on-failure
+    - ctest -C $BUILD_CONFIGURATION --output-on-failure
