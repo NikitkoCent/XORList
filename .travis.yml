@@ -17,6 +17,6 @@ compiler:
 
 script:
     - cd build
-    - cmake ..
+    - cmake -DCMAKE_BUILD_TYPE=Debug ..
     - cmake --build .
-    - ctest --output-on-failure
+    - ctest -C Debug --output-on-failure
