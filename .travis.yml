@@ -29,8 +29,8 @@ matrix:
           script:
             - cd build
             - cmake ..
-            - cmake --build --config $BUILD_CONFIGURATION .
-            - ctest -C $BUILD_CONFIGURATION
+            - cmake --build . --config $BUILD_CONFIGURATION
+            - ctest -C $BUILD_CONFIGURATION --output-on-failure
 
 # addons:
 #     apt:
