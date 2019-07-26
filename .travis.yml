@@ -43,7 +43,6 @@ matrix:
           os: linux
           compiler: gcc
           install:
-            - pip install --user cpp-coveralls
             - DEPS_DIR="${TRAVIS_BUILD_DIR}/deps"
             - mkdir ${DEPS_DIR}
             - cd ${DEPS_DIR}
@@ -59,4 +58,4 @@ matrix:
             - cmake -DCMAKE_BUILD_TYPE=Debug -DENABLE_GCOV=ON ..
             - cmake --build .
             - tests/unittesting
-          after_success: coveralls --gcov-options '\-lp'
+          #after_success: coveralls --gcov-options '\-lp'
