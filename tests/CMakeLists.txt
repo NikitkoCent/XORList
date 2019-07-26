@@ -1,4 +1,5 @@
 option(COLLECT_CODE_COVERAGE_LCOV "Setup code coverage or not" OFF)
+option(ENABLE_GCOV "Append compilation flags for using with gcov" OFF)
 
 find_package(Threads)
 
@@ -8,6 +9,12 @@ add_executable(unittesting ${CMAKE_SOURCE_DIR}/include/xor_list/xor_list.h
                            list.cpp
                            iterator.cpp)
 
+if (ENABLE_GCOV)
+    include(${cmake-modules_SOURCE_DIR}/CodeCoverage.cmake)
+
+    append_target_coverage_flags(unittesting)
+endif (ENABLE_GCOV)
+
 if (COLLECT_CODE_COVERAGE_LCOV)
     include(${cmake-modules_SOURCE_DIR}/CodeCoverage.cmake)
 
@@ -16,6 +23,7 @@ if (COLLECT_CODE_COVERAGE_LCOV)
                                    EXECUTABLE unittesting
 								   DEPENDENCIES unittesting)
 endif (COLLECT_CODE_COVERAGE_LCOV)
+
 enable_extra_compiler_warnings(unittesting)
 
 target_link_libraries(unittesting gtest gmock_main Threads::Threads)
