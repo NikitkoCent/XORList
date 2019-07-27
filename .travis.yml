@@ -24,6 +24,10 @@ matrix:
     exclude:
         - os: osx
           compiler: gcc
+    exclude: # GCC Debug will be added as coverage job
+        - os: linux
+        - compiler: gcc
+        - env: BUILD_CONFIGURATION=Debug
     include:
         - name: "Compiler: MSVC (Debug)"
           os: windows
@@ -57,5 +61,5 @@ matrix:
             - cd build
             - cmake -DCMAKE_BUILD_TYPE=Debug -DENABLE_GCOV=ON ..
             - cmake --build .
-            - tests/unittesting
-          #after_success: coveralls --gcov-options '\-lp'
+            - ctest -C Debug --output-on-failure
+          #after_success: bash <(curl -s https://codecov.io/bash)
