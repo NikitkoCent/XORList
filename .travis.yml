@@ -62,5 +62,5 @@ matrix:
             - cmake -DCMAKE_BUILD_TYPE=Debug -DENABLE_GCOV=ON ..
             - cmake --build .
             - ctest -C Debug --output-on-failure
-          after_success: bash <(curl -s https://codecov.io/bash)
+          after_success: bash <(curl -s https://codecov.io/bash) || echo "Codecov did not collect coverage reports"
 
