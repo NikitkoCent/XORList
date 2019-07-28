@@ -1,5 +1,4 @@
 option(COLLECT_CODE_COVERAGE_LCOV "Setup code coverage or not" OFF)
-option(ENABLE_GCOV "Append compilation flags for using with gcov" OFF)
 
 find_package(Threads)
 
@@ -8,12 +7,6 @@ include(${cmake-modules_SOURCE_DIR}/EnableExtraCompilerWarnings.cmake)
 add_executable(unittesting ${CMAKE_SOURCE_DIR}/include/xor_list/xor_list.h
                            list.cpp
                            iterator.cpp)
-
-if (ENABLE_GCOV)
-    include(${cmake-modules_SOURCE_DIR}/CodeCoverage.cmake)
-
-    append_target_coverage_flags(unittesting)
-endif (ENABLE_GCOV)
 
 if (COLLECT_CODE_COVERAGE_LCOV)
     include(${cmake-modules_SOURCE_DIR}/CodeCoverage.cmake)
