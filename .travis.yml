@@ -1,0 +1,65 @@
+language: cpp
+
+os:
+    - linux
+    - osx
+
+dist: trusty
+
+compiler:
+    - clang
+    - gcc
+
+env:
+    - BUILD_CONFIGURATION=Debug
+    - BUILD_CONFIGURATION=Release
+
+script:
+    - cd build
+    - cmake -DCMAKE_BUILD_TYPE=$BUILD_CONFIGURATION ..
+    - cmake --build .
+    - ctest -C $BUILD_CONFIGURATION --output-on-failure
+
+matrix:
+    exclude:
+        - os: osx
+          compiler: gcc
+        # GCC Debug will be added as coverage job
+        - os: linux
+          compiler: gcc
+          env: BUILD_CONFIGURATION=Debug
+    include:
+        - name: "Compiler: MSVC (Debug)"
+          os: windows
+          script:
+            - cd build
+            - cmake ..
+            - cmake --build . --config Debug
+            - ctest -C Debug --output-on-failure
+        - name: "Compiler: MSVC (Release)"
+          os: windows
+          script:
+            - cd build
+            - cmake ..
+            - cmake --build . --config Release
+            - ctest -C Release --output-on-failure
+        - name: "Compiler: gcc (Code coverage)"
+          os: linux
+          compiler: gcc
+          install:
+            - DEPS_DIR="${TRAVIS_BUILD_DIR}/deps"
+            - mkdir ${DEPS_DIR}
+            - cd ${DEPS_DIR}
+            # install: modern CMake
+            - CMAKE_NAME="cmake-3.15.1-Linux-x86_64"
+            - travis_retry wget --no-check-certificate https://github.com/Kitware/CMake/releases/download/v3.15.1/${CMAKE_NAME}.tar.gz
+            - tar -xvf ${CMAKE_NAME}.tar.gz > /dev/null
+            - PATH=${DEPS_DIR}/${CMAKE_NAME}:${DEPS_DIR}/${CMAKE_NAME}/bin:$PATH
+            # end install: modern CMake
+            - cd ${TRAVIS_BUILD_DIR}
+          script:
+            - cd build
+            - cmake -DCMAKE_BUILD_TYPE=Debug -DCOLLECT_CODE_COVERAGE=OTHER ..
+            - cmake --build .
+            - ctest -C Debug --output-on-failure
+          after_success: bash <(curl -s https://codecov.io/bash) || echo "Codecov did not collect coverage reports"

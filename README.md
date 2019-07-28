@@ -1,4 +1,4 @@
-# cpp-xor-list
+# cpp-xor-list [![Build Status](https://travis-ci.org/NikitkoCent/cpp-xor-list.svg?branch=master)](https://travis-ci.org/NikitkoCent/cpp-xor-list) [![Code Coverage](https://codecov.io/gh/NikitkoCent/cpp-xor-list/branch/master/graph/badge.svg)](https://codecov.io/gh/NikitkoCent/cpp-xor-list)
 C++11-compatible implementation of [XOR linked list](https://en.wikipedia.org/wiki/XOR_linked_list)
 with STL-like interface. Most of C++14 `std::list` methods are supported.
 
@@ -65,8 +65,8 @@ int main(int argc, char *argv[])
     * [CMake](https://cmake.org/download/) >= v3.1
     * Additionally, if you want to measure code coverage, you need:
         * compiler, 
-        [gcov](https://en.wikipedia.org/wiki/Gcov) and
-        [lcov](https://wiki.documentfoundation.org/Development/Lcov)
+        [gcov](https://en.wikipedia.org/wiki/Gcov)
+        [, optional: [lcov](https://wiki.documentfoundation.org/Development/Lcov)]
         compatible with each other
         (for example, gcc 6.3.0, gcov 6.3.0 and lcov 1.13 are compatible)
         * [genhtml](https://linux.die.net/man/1/genhtml)
@@ -95,26 +95,24 @@ Note: This project uses [GoogleTest](https://github.com/google/googletest) for t
 See [Requirements](#requirements) chapter first.
 
 CMake scripts provides the next additional variables for setting up the measurement:
-* `COLLECT_CODE_COVERAGE_LCOV=<ON|OFF>` - if set to `ON` then code coverage targets will be created.
-`OFF` by default. 
+* `COLLECT_CODE_COVERAGE=<LCOV|OTHER|OFF>` - if set to `LCOV` then code coverage target `collect_coverage` will be created. `OTHER` assumes compiling/linking code for measuring via different than lcov instrument ([gcov](https://en.wikipedia.org/wiki/Gcov) for example). `OFF` does nothing and set by default.
 * `GCOV_PATH` - allows to specify path to [gcov](https://en.wikipedia.org/wiki/Gcov) executable. `gcov` by default.
 
 It's recommended to build the code in `Debug` mode for coverage measurement.
 
-Example for `make` (run from project root):
+Example (run from project root):
 ```bash
 # Build
 cd build
 cmake -DCMAKE_BUILD_TYPE=Debug \
 -DCMAKE_C_COMPILER=gcc-6.3.0 \
 -DCMAKE_CXX_COMPILER=g++-6.3.0 \
--DCOLLECT_CODE_COVERAGE_LCOV=ON \
+-DCOLLECT_CODE_COVERAGE=LCOV \
 -DGCOV_PATH=gcov-6.3.0 \
 ..
-cmake --build .
 
 # Collecting the coverage:
-make collect_coverage
+cmake --build . --target collect_coverage
 
 # Html reports will be generated. Use browser to see it:
 <your_browser_name> ./collect_coverage/index.html &
