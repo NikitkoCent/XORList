@@ -11,8 +11,11 @@ add_executable(unittesting ${CMAKE_SOURCE_DIR}/include/xor_list/xor_list.h
 
 if (ENABLE_GCOV)
     include(${cmake-modules_SOURCE_DIR}/CodeCoverage.cmake)
+    include(../third-party/modules/GCov.cmake)
 
     append_target_coverage_flags(unittesting)
+    setup_target_for_coverage_gcov(NAME collect_coverage_gcov
+                                   TARGET unittesting)
 endif (ENABLE_GCOV)
 
 if (COLLECT_CODE_COVERAGE_LCOV)
