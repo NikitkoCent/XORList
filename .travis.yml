@@ -60,6 +60,6 @@ matrix:
           script:
             - cd build
             - cmake -DCMAKE_BUILD_TYPE=Debug -DENABLE_GCOV=ON ..
-            - cmake --build . --target collect_coverage_gcov
+            - ctest -C Debug --output-on-failure
           after_success: bash <(curl -s https://codecov.io/bash)
 
