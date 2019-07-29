@@ -5,6 +5,7 @@
 #include <type_traits>
 #include <stdexcept>
 #include <utility>
+#include <iterator>
 
 
 template<typename T>
@@ -1087,6 +1088,22 @@ TEST(LIST, EMPLACE2)
 
     ASSERT_EQ(list.size(), 4U);
     ASSERT_THAT(list, ::testing::ElementsAre(2, 1, 0, -1));
+}
+
+TEST(LIST, EMPLACE3)
+{
+    xor_list<Value<int>> list{2, 1, 0, -1};
+
+    auto emplacedIter1 = list.emplace(++++list.cbegin(), 10);
+    auto emplacedIter2 = list.emplace(std::next(emplacedIter1), 20);
+
+    ASSERT_EQ(list.size(), 6U);
+    ASSERT_THAT(list, ::testing::ElementsAre(2, 1, 10, 20, 0, -1));
+
+    ASSERT_EQ(*emplacedIter1, 10);
+    ASSERT_EQ(*emplacedIter2, 20);
+
+    ASSERT_EQ(++emplacedIter1, emplacedIter2);
 }
 
 TEST(LIST, EMPLACE_EXCEPTION1)
@@ -2292,4 +2309,179 @@ TEST(LIST, INSERT_RANGE_EXCEPTION2)
 
     ASSERT_EQ(list.size(), 4U);
     ASSERT_THAT(list, ::testing::ElementsAre(100, 200, 300, 400));
+}
+
+TEST(LIST, REMOVE_EMPTY)
+{
+    xor_list<Value<int>> list;
+
+    ASSERT_EQ(list.remove(1), 0U);
+
+    ASSERT_TRUE(list.empty());
+}
+
+TEST(LIST, REMOVE_SINGLE)
+{
+    xor_list<Value<int>> list{1};
+
+    ASSERT_EQ(list.remove(1), 1U);
+
+    ASSERT_TRUE(list.empty());
+}
+
+TEST(LIST, REMOVE_ALL)
+{
+    xor_list<Value<int>> list{1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
+
+    ASSERT_EQ(list.remove(1), 10U);
+
+    ASSERT_TRUE(list.empty());
+}
+
+TEST(LIST, REMOVE_MIDDLE)
+{
+    xor_list<Value<int>> list{0, 0, 0, 1, 1, 1, 0, 1, 0, 0};
+
+    ASSERT_EQ(list.remove(1), 4U);
+
+    ASSERT_EQ(list.size(), 6U);
+    ASSERT_THAT(list, ::testing::ElementsAre(0, 0, 0, 0, 0, 0));
+}
+
+TEST(LIST, REMOVE_IF_EMPTY)
+{
+    xor_list<Value<int>> list;
+
+    ASSERT_EQ(list.remove_if([](const Value<int> &val) { return val > 0; }), 0U);
+
+    ASSERT_TRUE(list.empty());
+}
+
+TEST(LIST, REMOVE_IF_SINGLE)
+{
+    xor_list<Value<int>> list{1};
+
+    ASSERT_EQ(list.remove_if([](const Value<int> &val) { return val > 0; }), 1U);
+
+    ASSERT_TRUE(list.empty());
+}
+
+TEST(LIST, REMOVE_IF_ALL)
+{
+    xor_list<Value<int>> list{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+
+    ASSERT_EQ(list.remove_if([](const Value<int> &) { return true; }), 10U);
+
+    ASSERT_TRUE(list.empty());
+}
+
+TEST(LIST, REMOVE_IF_MIDDLE)
+{
+    xor_list<Value<int>> list{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+
+    ASSERT_EQ(list.remove_if([](const Value<int> &val) { return ((val > 3) && (val < 8)); }), 4U);
+
+    ASSERT_EQ(list.size(), 6U);
+    ASSERT_THAT(list, ::testing::ElementsAre(1, 2, 3, 8, 9, 10));
+}
+
+TEST(LIST, MAX_SIZE_INVOKE)
+{
+    xor_list<Value<int>> list;
+    (void)list.max_size();
+}
+
+TEST(LIST, COMPARISON_EMPTY_EMPTY)
+{
+    xor_list<Value<int>> list, list2;
+
+    ASSERT_TRUE(list == list2);
+    ASSERT_FALSE(list != list2);
+    ASSERT_FALSE(list < list2);
+    ASSERT_TRUE(list <= list2);
+    ASSERT_FALSE(list > list2);
+    ASSERT_TRUE(list >= list2);
+
+    ASSERT_TRUE(list2 == list);
+    ASSERT_FALSE(list2 != list);
+    ASSERT_FALSE(list2 < list);
+    ASSERT_TRUE(list2 <= list);
+    ASSERT_FALSE(list2 > list);
+    ASSERT_TRUE(list2 >= list);
+}
+
+TEST(LIST, COMPARISON_EMPTY_SINGLE)
+{
+    xor_list<Value<int>> list, list2{1};
+
+    ASSERT_FALSE(list == list2);
+    ASSERT_TRUE(list != list2);
+    ASSERT_TRUE(list < list2);
+    ASSERT_TRUE(list <= list2);
+    ASSERT_FALSE(list > list2);
+    ASSERT_FALSE(list >= list2);
+
+    ASSERT_FALSE(list2 == list);
+    ASSERT_TRUE(list2 != list);
+    ASSERT_FALSE(list2 < list);
+    ASSERT_FALSE(list2 <= list);
+    ASSERT_TRUE(list2 > list);
+    ASSERT_TRUE(list2 >= list);
+}
+
+TEST(LIST, COMPARISON_SINGLE_SINGLE)
+{
+    xor_list<Value<int>> list{1}, list2{2};
+
+    ASSERT_FALSE(list == list2);
+    ASSERT_TRUE(list != list2);
+    ASSERT_TRUE(list < list2);
+    ASSERT_TRUE(list <= list2);
+    ASSERT_FALSE(list > list2);
+    ASSERT_FALSE(list >= list2);
+
+    ASSERT_FALSE(list2 == list);
+    ASSERT_TRUE(list2 != list);
+    ASSERT_FALSE(list2 < list);
+    ASSERT_FALSE(list2 <= list);
+    ASSERT_TRUE(list2 > list);
+    ASSERT_TRUE(list2 >= list);
+}
+
+TEST(LIST, COMPARISON_GENERIC1)
+{
+    xor_list<Value<int>> list{1, 2, 3, 4, 5}, list2{1, 2, 3};
+
+    ASSERT_FALSE(list == list2);
+    ASSERT_TRUE(list != list2);
+    ASSERT_FALSE(list < list2);
+    ASSERT_FALSE(list <= list2);
+    ASSERT_TRUE(list > list2);
+    ASSERT_TRUE(list >= list2);
+
+    ASSERT_FALSE(list2 == list);
+    ASSERT_TRUE(list2 != list);
+    ASSERT_TRUE(list2 < list);
+    ASSERT_TRUE(list2 <= list);
+    ASSERT_FALSE(list2 > list);
+    ASSERT_FALSE(list2 >= list);
+}
+
+TEST(LIST, COMPARISON_GENERIC2)
+{
+    xor_list<Value<int>> list{1, 2, 3, 4, 5}, list2{10, 9, 8, 7, 6};
+
+    ASSERT_FALSE(list == list2);
+    ASSERT_TRUE(list != list2);
+    ASSERT_TRUE(list < list2);
+    ASSERT_TRUE(list <= list2);
+    ASSERT_FALSE(list > list2);
+    ASSERT_FALSE(list >= list2);
+
+    ASSERT_FALSE(list2 == list);
+    ASSERT_TRUE(list2 != list);
+    ASSERT_FALSE(list2 < list);
+    ASSERT_FALSE(list2 <= list);
+    ASSERT_TRUE(list2 > list);
+    ASSERT_TRUE(list2 >= list);
 }

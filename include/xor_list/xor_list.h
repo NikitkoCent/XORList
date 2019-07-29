@@ -9,12 +9,13 @@
 #include <type_traits>      // ::std::conditional, ::std::enable_if, ::std::is_base_of
 #include <cstdint>          // ::std::uint*_t
 #include <cstddef>          // ::std::ptrdiff_t
-#include <algorithm>        // ::std::swap
+#include <algorithm>        // ::std::swap, ::std::equal, ::std::lexicographical_compare
 #include <tuple>            // ::std::tie
 #include <array>            // ::std::array
+#include <limits>           // ::std::numeric_limits
 
 
-template <typename T, class TAllocator = ::std::allocator<T>>
+template<typename T, class TAllocator = ::std::allocator<T>>
 class xor_list
 {
 private:
@@ -134,7 +135,7 @@ public:
         }
     }
 
-    virtual ~xor_list()
+    ~xor_list()
     {
         clear();
     }
@@ -155,6 +156,11 @@ public:
             moveAssignmentImpl(::std::move(right));
         }
         return *this;
+    }
+
+    allocator_type get_allocator() const
+    {
+        return allocator_type(allocator);
     }
 
     void swap(xor_list &other)
@@ -182,16 +188,16 @@ public:
         emplace_front(::std::move(data));
     }
 
-    template <typename... Args>
+    template<typename... Args>
     void emplace_back(Args&&... args)
     {
-        (void)insertNodeToThisBefore(cend(), createNode(::std::forward<Args>(args)...));
+        (void)emplace(cend(), ::std::forward<Args>(args)...);
     }
 
-    template <typename... Args>
+    template<typename... Args>
     void emplace_front(Args&&... args)
     {
-        (void)insertNodeToThisBefore(cbegin(), createNode(::std::forward<Args>(args)...));
+        (void)emplace(cbegin(), ::std::forward<Args>(args)...);
     }
 
     void pop_front()
@@ -209,6 +215,11 @@ public:
         return length;
     }
 
+    size_type max_size() const noexcept
+    {
+        return ::std::numeric_limits<size_type>::max() / sizeof(NodeWithValue);
+    }
+
     bool empty() const noexcept
     {
         return (size() == 0);
@@ -219,22 +230,22 @@ public:
         destroySequence(cbegin(), cend(), size());
     }
 
-    T& back() noexcept
+    T& back()
     {
         return *(--end());
     }
 
-    const T& back() const noexcept
+    const T& back() const
     {
         return *(--cend());
     }
 
-    T& front() noexcept
+    T& front()
     {
         return *begin();
     }
 
-    const T& front() const noexcept
+    const T& front() const
     {
         return *cbegin();
     }
@@ -270,13 +281,13 @@ public:
         return { reinterpret_cast<Node*>(afterTail.xorPtr), &afterTail };
     }
 
-    void sort() noexcept
+    void sort()
     {
         sort(::std::less<T>{});
     }
 
-    template <class Compare>
-    void sort(Compare isLess) noexcept
+    template<typename Compare>
+    void sort(Compare isLess)
     {
         using Range = ::std::pair<const_iterator, const_iterator>;
         struct NullableRange
@@ -347,13 +358,12 @@ public:
     // strong exception-safe guarantee
     iterator insert(const_iterator position, const_reference val)
     {
-        //insertNodeToThisBefore noexcept!
-        return insertNodeToThisBefore(position, createNode(val)).first;
+        return emplace(position, val);
     }
 
     // WARNING! Iterators equal to position will become invalid
     // strong exception-safe guarantee
-    template <class InputIterator>
+    template<typename InputIterator>
     iterator insert(const_iterator position, InputIterator first, InputIterator last)
     {
         if (first == last)
@@ -381,7 +391,17 @@ public:
         return result;
     }
 
+    // WARNING! Iterators equal to position will become invalid
+    // strong exception-safe guarantee
+    template<typename... Args>
+    iterator emplace(const_iterator position, Args&&... args)
+    {
+        //insertNodeToThisBefore noexcept!
+        return insertNodeToThisBefore(position, createNode(::std::forward<Args>(args)...)).first;
+    }
+
     // WARNING! All iterators will become invalid
+    // Complexity: O(1)
     void reverse() noexcept
     {
         if (empty())
@@ -418,6 +438,32 @@ public:
         return { first.prev, last.current };
     }
 
+    size_type remove(const T &value)
+    {
+        return remove_if([&value](const T &elem) { return (elem == value); });
+    }
+
+    template<typename UnaryPredicate>
+    size_type remove_if(UnaryPredicate p)
+    {
+        size_type result = 0;
+
+        for (const_iterator iter = cbegin(); iter != cend();)
+        {
+            if (p(*iter))
+            {
+                iter = erase(iter);
+                ++result;
+            }
+            else
+            {
+                ++iter;
+            }
+        }
+
+        return result;
+    }
+
     void resize(size_type count)
     {
         resizeImpl(count);
@@ -428,7 +474,7 @@ public:
         resizeImpl(count, val);
     }
 
-    template <typename InputIterator>
+    template<typename InputIterator>
     typename ::std::enable_if<::std::is_base_of<::std::input_iterator_tag,
                                                 typename ::std::iterator_traits<InputIterator>::iterator_category>::value>::type
     assign(InputIterator first, InputIterator last)
@@ -478,7 +524,7 @@ public:
     }
 
 
-    void splice(const_iterator position, xor_list &x) noexcept
+    void splice(const_iterator position, xor_list &x)
     {
         if ((this == ::std::addressof(x)) || (x.empty()))
         {
@@ -491,7 +537,7 @@ public:
         (void)insertSequenceToThisBefore(position, range.first, range.second, distance);
     }
 
-    void splice(const_iterator position, xor_list &x, const_iterator i) noexcept
+    void splice(const_iterator position, xor_list &x, const_iterator i)
     {
         if ((this == ::std::addressof(x)) && ((position == i) || (position.prev == i.current)))
         {
@@ -502,7 +548,7 @@ public:
         (void)insertNodeToThisBefore(position, static_cast<NodeWithValue*>(range.first.current));
     }
 
-    void splice(const_iterator position, xor_list &x, const_iterator first, const_iterator last) noexcept
+    void splice(const_iterator position, xor_list &x, const_iterator first, const_iterator last)
     {
         if (first == last)
         {
@@ -522,7 +568,7 @@ public:
     }
 
     // All iterators will become invalid
-    template <typename BinaryPredicate>
+    template<typename BinaryPredicate>
     void unique(BinaryPredicate isEqual)
     {
         if (size() < 2)
@@ -545,14 +591,14 @@ public:
     }
 
     // All iterators from *this and x will become invalid
-    void merge(xor_list &x) noexcept
+    void merge(xor_list &x)
     {
         merge(x, ::std::less<T>{});
     }
 
     // All iterators from *this and x will become invalid
-    template <typename Compare>
-    void merge(xor_list &x, Compare isLess) noexcept
+    template<typename Compare>
+    void merge(xor_list &x, Compare isLess)
     {
         if (!x.empty())
         {
@@ -595,14 +641,14 @@ private:
 
         Node(const Node&) noexcept = default;
         Node(Node &&) noexcept = default;
-        
+
         virtual ~Node() = default;
 
         Node& operator=(const Node&) noexcept = default;
         Node& operator=(Node &&) noexcept = default;
     };
 
-    struct NodeWithValue : Node
+    struct NodeWithValue final : Node
     {
         T value;
 
@@ -723,7 +769,7 @@ private:
     };
 
 
-    struct CutResult
+    struct CutResult final
     {
         ::std::pair<iterator, iterator> cutted;
         iterator end;
@@ -788,10 +834,8 @@ private:
         return insertNodeBefore(position, node);
     }
 
-    /*
-     * All iterators equal to <position> will become invalid
-     * Returns valid range [inserted, position]
-     */
+    // All iterators equal to <position> will become invalid
+    // Returns valid range [inserted, position]
     static ::std::pair<iterator, iterator>
     insertNodeBefore(const_iterator position, NodeWithValue *const node) noexcept
     {
@@ -819,11 +863,10 @@ private:
         return insertSequenceBefore(position, begin, end);
     }
 
-    /*
-     * All iterators equal to <position>, <begin> will become invalid
-     * Iterators equal to end still remains valid (--end == result.second)
-     * Returns valid range [begin, position]
-     */
+
+    // All iterators equal to <position>, <begin> will become invalid
+    // Iterators equal to end still remains valid (--end == result.second)
+    // Returns valid range [begin, position]
     static ::std::pair<iterator, iterator>
     insertSequenceBefore(const_iterator position, const_iterator begin,
                          const_iterator end) noexcept
@@ -852,14 +895,12 @@ private:
         return cutSequence(first, last);
     }
 
-    /*
-     * Returns iterators to the first cutted and following the last cutted elements
-     * Decrement result.first or increment result.second is UB
-     * Dereference result.second is UB
-     * Increment and dereference result.first are still valid
-     * Decrement result.second returns is an iterator to the last cutted element
-     * Iterators equal to begin, end will become invalid
-     */
+    // Returns iterators to the first cutted and following the last cutted elements
+    // Decrement result.first or increment result.second is UB
+    // Dereference result.second is UB
+    // Increment and dereference result.first are still valid
+    // Decrement result.second returns is an iterator to the last cutted element
+    // Iterators equal to begin, end will become invalid
     static CutResult
     cutSequence(const_iterator begin, const_iterator end) noexcept
     {
@@ -1026,10 +1067,8 @@ private:
         return mergeSequences(beginTo, endTo, beginFrom, endFrom, ::std::forward<LessCompare>(isLess));
     }
 
-    /*
-     * All iterators will become invalid
-     * Return new range [first, second)
-     */
+    // All iterators will become invalid
+    // Return new range [first, second)
     template<typename LessCompare>
     static ::std::pair<iterator, iterator>
     mergeSequences(const_iterator beginTo, const_iterator endTo,
@@ -1079,5 +1118,44 @@ private:
         return { static_cast<iterator>(resultBegin), static_cast<iterator>(endTo) };
     }
 };
+
+
+// Comparison operators
+
+template<typename T, class TAllocator>
+bool operator==(const xor_list<T, TAllocator> &lhs, const xor_list<T, TAllocator> &rhs)
+{
+    return ((lhs.size() == rhs.size()) && (::std::equal(lhs.cbegin(), lhs.cend(), rhs.cbegin())));
+}
+
+template<typename T, class TAllocator>
+bool operator!=(const xor_list<T, TAllocator> &lhs, const xor_list<T, TAllocator> &rhs)
+{
+    return (!(lhs == rhs));
+}
+
+template<typename T, class TAllocator>
+bool operator<(const xor_list<T, TAllocator> &lhs, const xor_list<T, TAllocator> &rhs)
+{
+    return ::std::lexicographical_compare(lhs.cbegin(), lhs.cend(), rhs.cbegin(), rhs.cend());
+}
+
+template<typename T, class TAllocator>
+bool operator>(const xor_list<T, TAllocator> &lhs, const xor_list<T, TAllocator> &rhs)
+{
+    return (rhs < lhs);
+}
+
+template<typename T, class TAllocator>
+bool operator<=(const xor_list<T, TAllocator> &lhs, const xor_list<T, TAllocator> &rhs)
+{
+    return (!(rhs < lhs));
+}
+
+template<typename T, class TAllocator>
+bool operator>=(const xor_list<T, TAllocator> &lhs, const xor_list<T, TAllocator> &rhs)
+{
+    return (!(lhs < rhs));
+}
 
 #endif //XORLIST_XOR_LIST_H
