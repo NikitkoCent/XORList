@@ -432,6 +432,32 @@ public:
         return { first.prev, last.current };
     }
 
+    size_type remove(const T &value)
+    {
+        return remove_if([&value](const T &right) { return (value == right); });
+    }
+
+    template<typename UnaryPredicate>
+    size_type remove_if(UnaryPredicate p)
+    {
+        size_type result = 0;
+
+        for (const_iterator iter = cbegin(); iter != cend();)
+        {
+            if (p(*iter))
+            {
+                iter = erase(iter);
+                ++result;
+            }
+            else
+            {
+                ++iter;
+            }
+        }
+
+        return result;
+    }
+
     void resize(size_type count)
     {
         resizeImpl(count);
