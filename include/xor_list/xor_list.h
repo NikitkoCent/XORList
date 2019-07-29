@@ -219,22 +219,22 @@ public:
         destroySequence(cbegin(), cend(), size());
     }
 
-    T& back() noexcept
+    T& back()
     {
         return *(--end());
     }
 
-    const T& back() const noexcept
+    const T& back() const
     {
         return *(--cend());
     }
 
-    T& front() noexcept
+    T& front()
     {
         return *begin();
     }
 
-    const T& front() const noexcept
+    const T& front() const
     {
         return *cbegin();
     }
@@ -270,13 +270,13 @@ public:
         return { reinterpret_cast<Node*>(afterTail.xorPtr), &afterTail };
     }
 
-    void sort() noexcept
+    void sort()
     {
         sort(::std::less<T>{});
     }
 
     template <class Compare>
-    void sort(Compare isLess) noexcept
+    void sort(Compare isLess)
     {
         using Range = ::std::pair<const_iterator, const_iterator>;
         struct NullableRange
@@ -382,6 +382,7 @@ public:
     }
 
     // WARNING! All iterators will become invalid
+    // Complexity: O(1)
     void reverse() noexcept
     {
         if (empty())
@@ -478,7 +479,7 @@ public:
     }
 
 
-    void splice(const_iterator position, xor_list &x) noexcept
+    void splice(const_iterator position, xor_list &x)
     {
         if ((this == ::std::addressof(x)) || (x.empty()))
         {
@@ -491,7 +492,7 @@ public:
         (void)insertSequenceToThisBefore(position, range.first, range.second, distance);
     }
 
-    void splice(const_iterator position, xor_list &x, const_iterator i) noexcept
+    void splice(const_iterator position, xor_list &x, const_iterator i)
     {
         if ((this == ::std::addressof(x)) && ((position == i) || (position.prev == i.current)))
         {
@@ -502,7 +503,7 @@ public:
         (void)insertNodeToThisBefore(position, static_cast<NodeWithValue*>(range.first.current));
     }
 
-    void splice(const_iterator position, xor_list &x, const_iterator first, const_iterator last) noexcept
+    void splice(const_iterator position, xor_list &x, const_iterator first, const_iterator last)
     {
         if (first == last)
         {
@@ -545,14 +546,14 @@ public:
     }
 
     // All iterators from *this and x will become invalid
-    void merge(xor_list &x) noexcept
+    void merge(xor_list &x)
     {
         merge(x, ::std::less<T>{});
     }
 
     // All iterators from *this and x will become invalid
     template <typename Compare>
-    void merge(xor_list &x, Compare isLess) noexcept
+    void merge(xor_list &x, Compare isLess)
     {
         if (!x.empty())
         {
@@ -595,14 +596,14 @@ private:
 
         Node(const Node&) noexcept = default;
         Node(Node &&) noexcept = default;
-        
+
         virtual ~Node() = default;
 
         Node& operator=(const Node&) noexcept = default;
         Node& operator=(Node &&) noexcept = default;
     };
 
-    struct NodeWithValue : Node
+    struct NodeWithValue final : Node
     {
         T value;
 
@@ -723,7 +724,7 @@ private:
     };
 
 
-    struct CutResult
+    struct CutResult final
     {
         ::std::pair<iterator, iterator> cutted;
         iterator end;
