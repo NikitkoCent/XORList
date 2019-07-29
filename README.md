@@ -1,17 +1,12 @@
 # cpp-xor-list [![Build Status](https://travis-ci.org/NikitkoCent/cpp-xor-list.svg?branch=master)](https://travis-ci.org/NikitkoCent/cpp-xor-list) [![Code Coverage](https://codecov.io/gh/NikitkoCent/cpp-xor-list/branch/master/graph/badge.svg)](https://codecov.io/gh/NikitkoCent/cpp-xor-list) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/NikitkoCent/cpp-xor-list/blob/master/LICENSE)
 C++11-compatible implementation of [XOR linked list](https://en.wikipedia.org/wiki/XOR_linked_list)
-with STL-like interface. Most of C++14 `std::list` methods are supported.
+with STL-like interface. Most of C++14 `std::list` methods are also supported.
 
 <details>
 <summary>Notes</summary>
 
 ### Not supported methods:
-* `std::list::emplace` (but `std::list::emplace_<front|back>` are supported) - may be added later
-* comparison operators (`operator==`, `operator<=` etc) - may be added later
-* `std::list::max_size` - may be added later
-* `std::list::get_allocator` - may be added later
-* `std::list::remove_if` - may be added later
-* `std::erase_if` - may be added later
+* `std::erase_if` - will be added after C++20 release
 </details>
 
 ## Example
