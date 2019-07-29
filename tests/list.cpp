@@ -2352,7 +2352,7 @@ TEST(LIST, REMOVE_IF_EMPTY)
 {
     xor_list<Value<int>> list;
 
-    ASSERT_EQ(list.remove_if([](auto &&val) { return val > 0; }), 0U);
+    ASSERT_EQ(list.remove_if([](const Value<int> &val) { return val > 0; }), 0U);
 
     ASSERT_TRUE(list.empty());
 }
@@ -2361,7 +2361,7 @@ TEST(LIST, REMOVE_IF_SINGLE)
 {
     xor_list<Value<int>> list{1};
 
-    ASSERT_EQ(list.remove_if([](auto &&val) { return val > 0; }), 1U);
+    ASSERT_EQ(list.remove_if([](const Value<int> &val) { return val > 0; }), 1U);
 
     ASSERT_TRUE(list.empty());
 }
@@ -2370,7 +2370,7 @@ TEST(LIST, REMOVE_IF_ALL)
 {
     xor_list<Value<int>> list{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
 
-    ASSERT_EQ(list.remove_if([](auto &&) { return true; }), 10U);
+    ASSERT_EQ(list.remove_if([](const Value<int> &) { return true; }), 10U);
 
     ASSERT_TRUE(list.empty());
 }
@@ -2379,7 +2379,7 @@ TEST(LIST, REMOVE_IF_MIDDLE)
 {
     xor_list<Value<int>> list{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
 
-    ASSERT_EQ(list.remove_if([](auto &&val) { return ((val > 3) && (val < 8)); }), 4U);
+    ASSERT_EQ(list.remove_if([](const Value<int> &val) { return ((val > 3) && (val < 8)); }), 4U);
 
     ASSERT_EQ(list.size(), 6U);
     ASSERT_THAT(list, ::testing::ElementsAre(1, 2, 3, 8, 9, 10));
