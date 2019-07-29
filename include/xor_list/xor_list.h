@@ -834,10 +834,8 @@ private:
         return insertNodeBefore(position, node);
     }
 
-    /*
-     * All iterators equal to <position> will become invalid
-     * Returns valid range [inserted, position]
-     */
+    // All iterators equal to <position> will become invalid
+    // Returns valid range [inserted, position]
     static ::std::pair<iterator, iterator>
     insertNodeBefore(const_iterator position, NodeWithValue *const node) noexcept
     {
@@ -865,11 +863,10 @@ private:
         return insertSequenceBefore(position, begin, end);
     }
 
-    /*
-     * All iterators equal to <position>, <begin> will become invalid
-     * Iterators equal to end still remains valid (--end == result.second)
-     * Returns valid range [begin, position]
-     */
+
+    // All iterators equal to <position>, <begin> will become invalid
+    // Iterators equal to end still remains valid (--end == result.second)
+    // Returns valid range [begin, position]
     static ::std::pair<iterator, iterator>
     insertSequenceBefore(const_iterator position, const_iterator begin,
                          const_iterator end) noexcept
@@ -898,14 +895,12 @@ private:
         return cutSequence(first, last);
     }
 
-    /*
-     * Returns iterators to the first cutted and following the last cutted elements
-     * Decrement result.first or increment result.second is UB
-     * Dereference result.second is UB
-     * Increment and dereference result.first are still valid
-     * Decrement result.second returns is an iterator to the last cutted element
-     * Iterators equal to begin, end will become invalid
-     */
+    // Returns iterators to the first cutted and following the last cutted elements
+    // Decrement result.first or increment result.second is UB
+    // Dereference result.second is UB
+    // Increment and dereference result.first are still valid
+    // Decrement result.second returns is an iterator to the last cutted element
+    // Iterators equal to begin, end will become invalid
     static CutResult
     cutSequence(const_iterator begin, const_iterator end) noexcept
     {
@@ -1072,10 +1067,8 @@ private:
         return mergeSequences(beginTo, endTo, beginFrom, endFrom, ::std::forward<LessCompare>(isLess));
     }
 
-    /*
-     * All iterators will become invalid
-     * Return new range [first, second)
-     */
+    // All iterators will become invalid
+    // Return new range [first, second)
     template<typename LessCompare>
     static ::std::pair<iterator, iterator>
     mergeSequences(const_iterator beginTo, const_iterator endTo,
