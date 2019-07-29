@@ -157,6 +157,11 @@ public:
         return *this;
     }
 
+    allocator_type get_allocator() const
+    {
+        return allocator_type(allocator);
+    }
+
     void swap(xor_list &other)
     {
         swapImpl(other);
