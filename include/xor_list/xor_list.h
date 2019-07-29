@@ -12,6 +12,7 @@
 #include <algorithm>        // ::std::swap
 #include <tuple>            // ::std::tie
 #include <array>            // ::std::array
+#include <limits>           // ::std::numeric_limits
 
 
 template<typename T, class TAllocator = ::std::allocator<T>>
@@ -212,6 +213,11 @@ public:
     size_type size() const noexcept
     {
         return length;
+    }
+
+    size_type max_size() const noexcept
+    {
+        return ::std::numeric_limits<size_type>::max() / sizeof(NodeWithValue);
     }
 
     bool empty() const noexcept

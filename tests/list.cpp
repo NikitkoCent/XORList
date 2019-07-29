@@ -2384,3 +2384,9 @@ TEST(LIST, REMOVE_IF_MIDDLE)
     ASSERT_EQ(list.size(), 6U);
     ASSERT_THAT(list, ::testing::ElementsAre(1, 2, 3, 8, 9, 10));
 }
+
+TEST(LIST, MAX_SIZE_INVOKE)
+{
+    xor_list<Value<int>> list;
+    (void)list.max_size();
+}
