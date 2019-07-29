@@ -5,6 +5,7 @@
 #include <type_traits>
 #include <stdexcept>
 #include <utility>
+#include <iterator>
 
 
 template<typename T>
@@ -1087,6 +1088,22 @@ TEST(LIST, EMPLACE2)
 
     ASSERT_EQ(list.size(), 4U);
     ASSERT_THAT(list, ::testing::ElementsAre(2, 1, 0, -1));
+}
+
+TEST(LIST, EMPLACE3)
+{
+    xor_list<Value<int>> list{2, 1, 0, -1};
+
+    auto emplacedIter1 = list.emplace(++++list.cbegin(), 10);
+    auto emplacedIter2 = list.emplace(std::next(emplacedIter1), 20);
+
+    ASSERT_EQ(list.size(), 6U);
+    ASSERT_THAT(list, ::testing::ElementsAre(2, 1, 10, 20, 0, -1));
+
+    ASSERT_EQ(*emplacedIter1, 10);
+    ASSERT_EQ(*emplacedIter2, 20);
+
+    ASSERT_EQ(++emplacedIter1, emplacedIter2);
 }
 
 TEST(LIST, EMPLACE_EXCEPTION1)

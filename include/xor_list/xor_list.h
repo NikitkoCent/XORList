@@ -185,13 +185,13 @@ public:
     template <typename... Args>
     void emplace_back(Args&&... args)
     {
-        (void)insertNodeToThisBefore(cend(), createNode(::std::forward<Args>(args)...));
+        (void)emplace(cend(), ::std::forward<Args>(args)...);
     }
 
     template <typename... Args>
     void emplace_front(Args&&... args)
     {
-        (void)insertNodeToThisBefore(cbegin(), createNode(::std::forward<Args>(args)...));
+        (void)emplace(cbegin(), ::std::forward<Args>(args)...);
     }
 
     void pop_front()
@@ -347,8 +347,7 @@ public:
     // strong exception-safe guarantee
     iterator insert(const_iterator position, const_reference val)
     {
-        //insertNodeToThisBefore noexcept!
-        return insertNodeToThisBefore(position, createNode(val)).first;
+        return emplace(position, val);
     }
 
     // WARNING! Iterators equal to position will become invalid
@@ -379,6 +378,15 @@ public:
         }
 
         return result;
+    }
+
+    // WARNING! Iterators equal to position will become invalid
+    // strong exception-safe guarantee
+    template<typename... Args>
+    iterator emplace(const_iterator position, Args&&... args)
+    {
+        //insertNodeToThisBefore noexcept!
+        return insertNodeToThisBefore(position, createNode(::std::forward<Args>(args)...)).first;
     }
 
     // WARNING! All iterators will become invalid
