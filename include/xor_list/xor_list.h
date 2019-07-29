@@ -275,7 +275,7 @@ public:
         sort(::std::less<T>{});
     }
 
-    template <class Compare>
+    template<typename Compare>
     void sort(Compare isLess)
     {
         using Range = ::std::pair<const_iterator, const_iterator>;
@@ -353,7 +353,7 @@ public:
 
     // WARNING! Iterators equal to position will become invalid
     // strong exception-safe guarantee
-    template <class InputIterator>
+    template<typename InputIterator>
     iterator insert(const_iterator position, InputIterator first, InputIterator last)
     {
         if (first == last)
