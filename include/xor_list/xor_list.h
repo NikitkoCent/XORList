@@ -14,7 +14,7 @@
 #include <array>            // ::std::array
 
 
-template <typename T, class TAllocator = ::std::allocator<T>>
+template<typename T, class TAllocator = ::std::allocator<T>>
 class xor_list
 {
 private:
@@ -187,13 +187,13 @@ public:
         emplace_front(::std::move(data));
     }
 
-    template <typename... Args>
+    template<typename... Args>
     void emplace_back(Args&&... args)
     {
         (void)emplace(cend(), ::std::forward<Args>(args)...);
     }
 
-    template <typename... Args>
+    template<typename... Args>
     void emplace_front(Args&&... args)
     {
         (void)emplace(cbegin(), ::std::forward<Args>(args)...);
@@ -434,7 +434,7 @@ public:
 
     size_type remove(const T &value)
     {
-        return remove_if([&value](const T &right) { return (value == right); });
+        return remove_if([&value](const T &elem) { return (elem == value); });
     }
 
     template<typename UnaryPredicate>
@@ -468,7 +468,7 @@ public:
         resizeImpl(count, val);
     }
 
-    template <typename InputIterator>
+    template<typename InputIterator>
     typename ::std::enable_if<::std::is_base_of<::std::input_iterator_tag,
                                                 typename ::std::iterator_traits<InputIterator>::iterator_category>::value>::type
     assign(InputIterator first, InputIterator last)
@@ -562,7 +562,7 @@ public:
     }
 
     // All iterators will become invalid
-    template <typename BinaryPredicate>
+    template<typename BinaryPredicate>
     void unique(BinaryPredicate isEqual)
     {
         if (size() < 2)
@@ -591,7 +591,7 @@ public:
     }
 
     // All iterators from *this and x will become invalid
-    template <typename Compare>
+    template<typename Compare>
     void merge(xor_list &x, Compare isLess)
     {
         if (!x.empty())
