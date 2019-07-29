@@ -134,7 +134,7 @@ public:
         }
     }
 
-    virtual ~xor_list()
+    ~xor_list()
     {
         clear();
     }
