@@ -9,7 +9,7 @@
 #include <type_traits>      // ::std::conditional, ::std::enable_if, ::std::is_base_of
 #include <cstdint>          // ::std::uint*_t
 #include <cstddef>          // ::std::ptrdiff_t
-#include <algorithm>        // ::std::swap
+#include <algorithm>        // ::std::swap, ::std::equal, ::std::lexicographical_compare
 #include <tuple>            // ::std::tie
 #include <array>            // ::std::array
 #include <limits>           // ::std::numeric_limits
@@ -1125,5 +1125,44 @@ private:
         return { static_cast<iterator>(resultBegin), static_cast<iterator>(endTo) };
     }
 };
+
+
+// Comparison operators
+
+template<typename T, class TAllocator>
+bool operator==(const xor_list<T, TAllocator> &lhs, const xor_list<T, TAllocator> &rhs)
+{
+    return ((lhs.size() == rhs.size()) && (::std::equal(lhs.cbegin(), lhs.cend(), rhs.cbegin())));
+}
+
+template<typename T, class TAllocator>
+bool operator!=(const xor_list<T, TAllocator> &lhs, const xor_list<T, TAllocator> &rhs)
+{
+    return (!(lhs == rhs));
+}
+
+template<typename T, class TAllocator>
+bool operator<(const xor_list<T, TAllocator> &lhs, const xor_list<T, TAllocator> &rhs)
+{
+    return ::std::lexicographical_compare(lhs.cbegin(), lhs.cend(), rhs.cbegin(), rhs.cend());
+}
+
+template<typename T, class TAllocator>
+bool operator>(const xor_list<T, TAllocator> &lhs, const xor_list<T, TAllocator> &rhs)
+{
+    return (rhs < lhs);
+}
+
+template<typename T, class TAllocator>
+bool operator<=(const xor_list<T, TAllocator> &lhs, const xor_list<T, TAllocator> &rhs)
+{
+    return (!(rhs < lhs));
+}
+
+template<typename T, class TAllocator>
+bool operator>=(const xor_list<T, TAllocator> &lhs, const xor_list<T, TAllocator> &rhs)
+{
+    return (!(lhs < rhs));
+}
 
 #endif //XORLIST_XOR_LIST_H
