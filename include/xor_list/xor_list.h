@@ -6,10 +6,10 @@
 #include <utility>          // ::std::move, ::std::forward, ::std::pair
 #include <functional>       // ::std::less, ::std::equal_to
 #include <iterator>         // ::std::bidirectional_iterator_tag, ::std::next, ::std::iterator_traits
-#include <type_traits>      // ::std::conditional, ::std::enable_if_t, ::std::is_base_of
+#include <type_traits>      // ::std::conditional, ::std::enable_if, ::std::is_base_of
 #include <cstdint>          // ::std::uint*_t
 #include <cstddef>          // ::std::ptrdiff_t
-#include <algorithm>        // ::std::for_each, ::std::swap
+#include <algorithm>        // ::std::swap
 #include <tuple>            // ::std::tie
 #include <array>            // ::std::array
 
