@@ -51,8 +51,10 @@ matrix:
             - mkdir ${DEPS_DIR}
             - cd ${DEPS_DIR}
             # install: modern CMake
-            - CMAKE_NAME="cmake-3.15.1-Linux-x86_64"
-            - travis_retry wget --no-check-certificate https://github.com/Kitware/CMake/releases/download/v3.15.1/${CMAKE_NAME}.tar.gz
+            - CMAKE_NAME="cmake-3.13.0-Linux-x86_64"
+            - travis_retry wget --no-check-certificate https://github.com/Kitware/CMake/releases/download/v3.13.0/${CMAKE_NAME}.tar.gz
+            - echo "cdee72c5ef934c4972f1ad4e9c35712589345f3470a3cf15f7be493c170cc965 *cmake-3.15.1-Linux-x86_64.tar.gz" > cmake_sha256.txt
+            - sha256sum -c cmake_sha256.txt
             - tar -xvf ${CMAKE_NAME}.tar.gz > /dev/null
             - PATH=${DEPS_DIR}/${CMAKE_NAME}:${DEPS_DIR}/${CMAKE_NAME}/bin:$PATH
             # end install: modern CMake
