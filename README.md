@@ -74,7 +74,7 @@ Just use [CMake](https://cmake.org/download/) (run from project root):
 ```bash
 # Build
 cd build
-cmake -DCMAKE_BUILD_TYPE=Release
+cmake -DCMAKE_BUILD_TYPE=Release ..
 cmake --build .
 
 # Running tests
