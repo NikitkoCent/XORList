@@ -1,4 +1,4 @@
-# cpp-xor-list [![Build Status](https://travis-ci.org/NikitkoCent/cpp-xor-list.svg?branch=master)](https://travis-ci.org/NikitkoCent/cpp-xor-list) [![Code Coverage](https://codecov.io/gh/NikitkoCent/cpp-xor-list/branch/master/graph/badge.svg)](https://codecov.io/gh/NikitkoCent/cpp-xor-list) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/NikitkoCent/cpp-xor-list/blob/master/LICENSE)
+# cpp-xor-list [![Build Status](https://travis-ci.org/NikitkoCent/cpp-xor-list.svg?branch=master)](https://travis-ci.org/NikitkoCent/cpp-xor-list) [![Code Coverage](https://codecov.io/gh/NikitkoCent/cpp-xor-list/branch/master/graph/badge.svg)](https://codecov.io/gh/NikitkoCent/cpp-xor-list) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 C++11-compatible header-only implementation of [XOR linked list](https://en.wikipedia.org/wiki/XOR_linked_list)
 with STL-like interface. Most of C++14 `std::list` methods are also supported.
 
